@@ -1,5 +1,6 @@
 // import PriorityQueue from "./utils/PriorityQueue";
-// import Konane from "./utils/Konane";
+import Konane from "./Konane/Konane";
+import KonaneGame from "./Konane/KonaneGame";
 
 // const pq = new PriorityQueue((el: number) => el);
 // console.log(pq.isEmpty());
@@ -10,7 +11,8 @@
 // pq.pop();
 // console.log(pq);
 
-// const game = new Konane(8);
-// console.log(game.board);
-// console.log(game.blackPositions.values());
-// console.log(game.whitePositions.values());
+const game = new KonaneGame("black");
+console.table(game.board);
+game.successors().forEach((succ) => {
+  console.table(succ);
+});
