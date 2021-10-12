@@ -7,8 +7,6 @@ import {
   WHITE,
   Jump,
   possibleJumps,
-  BLACK_CHECKER,
-  WHITE_CHECKER,
   MoveChecker,
   RemoveChecker,
 } from "./KonaneUtils";
@@ -16,15 +14,11 @@ import {
 export default class Konane {
   private n: number;
   board: Cell[][];
-  blackCheckerCells: Set<number[]>;
-  whiteCheckerCells: Set<number[]>;
   turn = 0;
 
   constructor() {
     this.n = 8;
     this.board = this.initializeBoard();
-    this.blackCheckerCells = this.getCheckerCells(BLACK);
-    this.whiteCheckerCells = this.getCheckerCells(WHITE);
   }
 
   getBlackLegalActions(): Action[] | null {
@@ -50,18 +44,23 @@ export default class Konane {
 
   private getLegalMoves(player: Player) {
     const playerCheckerCells =
-      player === BLACK ? this.blackCheckerCells : this.whiteCheckerCells;
+      player === BLACK
+        ? this.getCheckerCells(BLACK)
+        : this.getCheckerCells(WHITE);
     const legalMoves: MoveChecker[] = [...playerCheckerCells].flatMap(
-      ([curX, curY]) => {
+      ([curRow, curCol]) => {
         // legal jumps from this cell
-        const legalCheckerJumpsFromCell = this.getLegalCheckerJumps(curX, curY);
+        const legalCheckerJumpsFromCell = this.getLegalCheckerJumps(
+          curRow,
+          curCol
+        );
         // convert jump to move
         const legalMovesFromCell: MoveChecker[] = legalCheckerJumpsFromCell.map(
-          ({ offset: [offsetX, offsetY] }, times) => ({
+          ({ offset: [offsetRow, offsetCol], times }) => ({
             player,
             type: "move",
-            from: [curX, curY],
-            to: [curX + offsetX * times, curY + offsetY * times],
+            from: [curRow, curCol],
+            to: [curRow + offsetRow * times, curCol + offsetCol * times],
           })
         );
         return legalMovesFromCell;
@@ -80,16 +79,49 @@ export default class Konane {
 
   private isLegalJump(row: number, col: number, jump: Jump) {
     const { offset, times } = jump;
-    const [offsetY, offsetX] = offset;
-    // Ex: [[r + 2 ,c], [r + 4, c]]
-    const intermediateCells = [...Array(times - 1)].map((_, idx) => [
-      row + offsetY * idx,
-      col + offsetX * idx,
-    ]);
-    return intermediateCells.every(
-      ([row, col]) =>
-        this.isLegalCell(row, col) && this.board[row][col] === EMPTY
-    );
+    const [offsetRow, offsetCol] = offset;
+    const startRow = Math.min(row + offsetRow * times, row);
+    const endRow = Math.max(row + offsetRow * times, row);
+    const startCol = Math.min(col + offsetCol * times, col);
+    const endCol = Math.max(col + offsetCol * times, col);
+    if (startRow === endRow) {
+      // jumping up down
+      for (let c = startCol; c <= endCol; c++) {
+        // if this cell is the starting cell skip the check
+        if (c === col) continue;
+        // if this cell is off the board
+        if (!this.isLegalCell(startRow, c)) return false;
+        if ((c - startCol) % 2 === 0) {
+          // should be empty
+          if (this.board[startRow][c] !== EMPTY) return false;
+        } else {
+          // should have a checker
+          // should not be empty
+          // guaranteed to be opposing checker
+          if (this.board[startRow][c] === EMPTY) return false;
+        }
+      }
+    } else if (startCol === endCol) {
+      // jumping left right
+      for (let r = startRow; r <= endRow; r++) {
+        // if this cell is the starting cell skip the check
+        if (r === row) continue;
+        // if this cell is off the board
+        if (!this.isLegalCell(r, startCol)) return false;
+        if ((r - startRow) % 2 === 0) {
+          // should be empty
+          if (this.board[r][startCol] !== EMPTY) return false;
+        } else {
+          // should have a checker
+          // should not be empty
+          // guaranteed to be opposing checker
+          if (this.board[r][startCol] === EMPTY) return false;
+        }
+      }
+    }
+    // all even cells are empty
+    // all odd cells have opposing checkers
+    return true;
   }
 
   private isLegalCell(row: number, col: number) {
