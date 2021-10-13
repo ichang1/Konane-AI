@@ -1,6 +1,6 @@
 // import PriorityQueue from "./utils/PriorityQueue";
-import { actionIsMoveChecker, BLACK, WHITE } from "./Konane/KonaneUtils";
-import KonaneGame from "./Konane/KonaneGame";
+import { actionIsMoveChecker, BLACK, WHITE } from "./KonaneUtils";
+import KonaneGame from "./KonaneGame";
 
 // const pq = new PriorityQueue((el: number) => el);
 // console.log(pq.isEmpty());

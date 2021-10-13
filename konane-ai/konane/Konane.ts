@@ -167,12 +167,12 @@ export default class Konane {
   }
 
   private getCheckerCells(player: Player) {
-    const positions: Set<number[]> = new Set();
+    const positions: [number, number][] = [];
     const playerChecker = player === BLACK ? "X" : "O";
     for (let row = 0; row < this.n; row++) {
       for (let col = 0; col < this.n; col++) {
         if (this.board[row][col] === playerChecker) {
-          positions.add([row, col]);
+          positions.push([row, col]);
         }
       }
     }
