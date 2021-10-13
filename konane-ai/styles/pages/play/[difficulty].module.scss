@@ -1,0 +1,46 @@
+.container {
+  height: 100vh;
+  width: 100vw;
+}
+
+.konane-board {
+  &-container {
+    border: 1em solid black;
+    width: max-content;
+    aspect-ratio: 1 / 1;
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  &-row {
+    display: flex;
+    justify-content: center;
+  }
+  &-cell {
+    font-size: 1.5em;
+    width: 50px;
+    aspect-ratio: 1 / 1;
+  }
+  &-cell-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: none;
+    background-color: none;
+  }
+}
+
+.set-player-modal {
+  &-content {
+    width: 50%;
+    aspect-ratio: 1 / 0.25;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background-color: #cb4154;
+  }
+}

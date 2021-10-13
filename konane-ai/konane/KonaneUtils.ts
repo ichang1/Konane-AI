@@ -47,6 +47,12 @@ export const possibleJumps: Jump[] = [
   { offset: [-2, 0], times: 3 },
 ];
 
+type Tuple<TItem, TLength extends number> = [TItem, ...TItem[]] & {
+  length: TLength;
+};
+
+export type Board<T> = Tuple<T, 8>;
+
 export const actionIsMoveChecker = (action: Action): action is MoveChecker => {
   const { type } = action;
   return type === "move";
@@ -75,4 +81,8 @@ export const konaneDifficulties = {
   hard: 3,
   challenger: 4,
   grandmaster: 5,
+};
+
+export const stringIsPlayer = (s: string): s is Player => {
+  return s === WHITE || s === BLACK;
 };

@@ -9,6 +9,9 @@ import {
   possibleJumps,
   MoveChecker,
   RemoveChecker,
+  Board,
+  BLACK_CHECKER,
+  WHITE_CHECKER,
 } from "./KonaneUtils";
 
 export default class Konane {
@@ -151,15 +154,13 @@ export default class Konane {
   }
 
   private initializeBoard() {
-    const board = [...Array(this.n)].map((_) => [...Array(this.n)]);
-    const BLACK: Cell = "X";
-    const WHITE: Cell = "O";
+    const board: Cell[][] = [...Array(this.n)].map((_) => [...Array(this.n)]);
     for (let row = 0; row < this.n; row++) {
       for (let col = 0; col < this.n; col++) {
         if (row % 2 === col % 2) {
-          board[row][col] = BLACK;
+          board[row][col] = BLACK_CHECKER;
         } else {
-          board[row][col] = WHITE;
+          board[row][col] = WHITE_CHECKER;
         }
       }
     }

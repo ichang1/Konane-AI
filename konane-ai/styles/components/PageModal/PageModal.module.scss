@@ -1,0 +1,11 @@
+.page-modal {
+  position: absolute;
+  z-index: 80;
+  // way to have opacity for only parent and not children
+  background: rgba(255, 255, 255, 0.3);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
