@@ -1,0 +1,15 @@
+$difficulty-button-background: #202020;
+
+.play-difficulty-buttons-container {
+}
+
+.play-difficulty-level {
+  background: $difficulty-button-background;
+  color: white;
+  padding: 0.5em 1em;
+  border-radius: var(--button-border-radius);
+
+  &:hover {
+    background: darken($difficulty-button-background, 50%);
+  }
+}

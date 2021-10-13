@@ -67,3 +67,12 @@ export type KonaneGameState = {
     black: number;
   };
 };
+
+export const konaneDifficulties = {
+  novice: 0,
+  easy: 1,
+  medium: 2,
+  hard: 3,
+  challenger: 4,
+  grandmaster: 5,
+};
