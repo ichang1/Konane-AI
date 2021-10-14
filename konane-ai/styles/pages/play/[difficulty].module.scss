@@ -21,15 +21,10 @@
     font-size: 1.5em;
     width: 50px;
     aspect-ratio: 1 / 1;
-  }
-  &-cell-content {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    background: none;
-    background-color: none;
+    border: none;
   }
 }
 

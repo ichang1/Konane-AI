@@ -7,7 +7,14 @@ const REMOVE = "remove";
 const MOVE = "move";
 
 export type Player = "white" | "black";
-export type Cell = "O" | "X" | ".";
+export type Empty = ".";
+export type Checker = "X" | "O";
+export type Cell = Checker | Empty;
+
+export const cellIsChecker = (cell: Cell): cell is Checker => {
+  return cell === "X" || cell === "O";
+};
+
 export type RemoveChecker = {
   player: Player;
   type: "remove";
@@ -60,7 +67,7 @@ export const actionIsMoveChecker = (action: Action): action is MoveChecker => {
 
 export const actionIsRemoveChecker = (
   action: Action
-): action is MoveChecker => {
+): action is RemoveChecker => {
   const { type } = action;
   return type === "remove";
 };

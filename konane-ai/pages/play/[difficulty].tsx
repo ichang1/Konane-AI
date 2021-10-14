@@ -9,9 +9,14 @@ import {
   BLACK,
   WHITE,
   stringIsPlayer,
+  cellIsChecker,
+  actionIsMoveChecker,
+  actionIsRemoveChecker,
+  Action,
 } from "../../konane/KonaneUtils";
 import { useEffect, useRef, useState } from "react";
 import PageModal from "../../components/PageModal/PageModal";
+import KonaneGame from "../../konane/KonaneGame";
 
 const n = 8;
 const emptyBoard = [...Array(n)].map((_) => [...Array(n)]);
@@ -23,14 +28,131 @@ interface PlayKonaneProps {
   difficulty: string;
 }
 
+const ACTIVE_CELL_COLOR = "green";
+
 const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   const [player, setPlayer] = useState<Player | null>(null);
-  const boardRef = useRef<(HTMLDivElement | null)[][]>(emptyBoard);
+  const [activeCell, setActiveCell] = useState<[number, number] | null>(null);
+  const [playerLegalActions, setPlayerLegalActions] = useState<Action[] | null>(
+    null
+  );
+  const gameRef = useRef<KonaneGame | null>(null);
+  const boardRef = useRef<(HTMLButtonElement | null)[][]>(emptyBoard);
+
+  const [playerToPlay, setPlayerToPlay] = useState<Player | undefined>(
+    gameRef.current?.playerToPlay
+  );
+
+  const handlePrimaryCellClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    const { value } = e.currentTarget;
+    if (!value) {
+      console.log("Something went wrong");
+    }
+    const [row, col] = value.split("-").map((n) => parseInt(n));
+    if (isNaN(row) || isNaN(col)) return;
+    const cellElement = boardRef.current[row][col];
+    if (!cellElement) return;
+    // reset border for everything
+    boardRef.current.forEach((row) => {
+      row.forEach((cell) => {
+        if (!cell) return;
+        cell.style.border = "none";
+      });
+    });
+    if (activeCell === [row, col]) {
+      // clicked on the same active cell
+      setActiveCell(null);
+      if (!playerLegalActions) return;
+      playerLegalActions.forEach((action) => {
+        if (actionIsMoveChecker(action)) {
+          const { from } = action;
+          const [row, col] = from;
+          const cellElement = boardRef.current[row][col];
+          if (!cellElement) return;
+          cellElement.style.border = "2px dashed green";
+        } else if (actionIsRemoveChecker(action)) {
+          const [row, col] = action.cell;
+          const cellElement = boardRef.current[row][col];
+          if (!cellElement) return;
+          cellElement.style.border = "2px dashed green";
+        }
+      });
+    } else {
+      // turn on
+      // turn on related cells
+      cellElement.style.border = "2px solid green";
+      if (!playerLegalActions) return;
+      const relatedCells = playerLegalActions
+        // get actions related to clicked cell
+        .filter((action) => {
+          if (actionIsMoveChecker(action)) {
+            return action.from === [row, col];
+          } else if (actionIsRemoveChecker(action)) {
+            return action.cell === [row, col];
+          } else {
+            return false;
+          }
+        })
+        // get coordinates from actions
+        .map((action) => {
+          if (actionIsMoveChecker(action)) {
+            return action.to;
+          } else if (actionIsRemoveChecker(action)) {
+            return action.cell;
+          } else {
+            return null;
+          }
+        });
+      relatedCells.forEach((cell) => {
+        if (!cell) return;
+        const [row, col] = cell;
+        const relatedCellElement = boardRef.current[row][col];
+        if (!relatedCellElement) return;
+        relatedCellElement.style.border = "2px dashed green";
+      });
+    }
+  };
+
+  const addBoardHumanProps = () => {
+    // adds props to cells when human's turn
+    if (!gameRef.current) return;
+    if (!boardRef.current[0]) return;
+    const game = gameRef.current;
+    const playerToPlay = game.playerToPlay;
+    if (playerToPlay !== player) return;
+    const legalActions = game.getLegalHumanActions();
+    if (!legalActions) return;
+    legalActions.forEach((action) => {
+      if (actionIsMoveChecker(action)) {
+        const { to, from } = action;
+      } else if (actionIsRemoveChecker(action)) {
+        const { cell } = action;
+        const [row, col] = cell;
+      }
+    });
+  };
+
   useEffect(() => {
     if (player) {
-      console.log(player);
+      gameRef.current = new KonaneGame(player);
+      setPlayerToPlay(BLACK);
     }
-  }, []);
+  }, [player]);
+
+  useEffect(() => {
+    if (!gameRef.current) return;
+    const internalBoard = gameRef.current.board;
+    internalBoard.forEach((row, rowN) => {
+      row.forEach((cellVal, colN) => {
+        if (cellIsChecker(cellVal)) {
+          const cellElement = boardRef.current[rowN][colN];
+          if (!cellElement) return;
+          cellElement.innerHTML = cellVal;
+        }
+      });
+    });
+  }, [player, gameRef.current?.konane.turn]);
 
   const handleSetPlayerButtonClick = (
     e: React.MouseEvent<HTMLButtonElement>
@@ -43,7 +165,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
     if (!stringIsPlayer(value)) {
       console.log(`${value} is not of player type`);
     } else {
-      // set player
+      setPlayer(value);
     }
   };
   return (
@@ -76,19 +198,24 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
           </div>
         </PageModal>
       )}
+      {playerToPlay && (
+        <div className={styles["player-turn-message"]}>
+          {playerToPlay} to play
+        </div>
+      )}
       <div className={styles["konane-board-container"]}>
         {emptyBoard.map((row, rowN) => (
-          <div className={styles["konane-board-row"]}>
+          <div className={styles["konane-board-row"]} key={`row${rowN}`}>
             {row.map((_, colN) => (
-              <div
+              <button
                 className={styles["konane-board-cell"]}
-                ref={(el) => (boardRef.current[rowN][colN] = el)}
                 style={{
                   background: rowN % 2 === colN % 2 ? xCellColor : oCellColor,
                 }}
-              >
-                <div className={styles["konane-board-cell-content"]}>X</div>
-              </div>
+                key={`row${rowN}-col${colN}`}
+                value={`${rowN}-${colN}`}
+                ref={(el) => (boardRef.current[rowN][colN] = el)}
+              ></button>
             ))}
           </div>
         ))}
