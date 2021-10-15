@@ -28,7 +28,10 @@ interface PlayKonaneProps {
   difficulty: string;
 }
 
-const ACTIVE_CELL_COLOR = "green";
+const MOVE_CELL_COLOR = "green";
+const MOVE_CELL_COLOR_RGBA = "0,128,0,1";
+const REMOVE_CELL_COLOR = "red";
+const REMOVE_CELL_COLOR_RGBA = "255,0,0,1";
 
 const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   const [player, setPlayer] = useState<Player | null>(null);
@@ -135,12 +138,16 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
 
   useEffect(() => {
     if (player) {
+      // once user chooses to play as white or black, set up the game
       gameRef.current = new KonaneGame(player);
       setPlayerToPlay(BLACK);
     }
   }, [player]);
 
   useEffect(() => {
+    // once user chooses who to play as render the board
+    // ^ helps with initial render
+    // once it is the other player's turn, render the new board
     if (!gameRef.current) return;
     const internalBoard = gameRef.current.board;
     internalBoard.forEach((row, rowN) => {
@@ -149,10 +156,18 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
           const cellElement = boardRef.current[rowN][colN];
           if (!cellElement) return;
           cellElement.innerHTML = cellVal;
+          if (rowN === 0 && colN === 0) {
+            cellElement.classList.add("rotating-cell-border-primary");
+          }
         }
       });
     });
   }, [player, gameRef.current?.konane.turn]);
+
+  useEffect(() => {
+    // outline possible moves for human when it is their turn
+    if (playerToPlay !== player) return;
+  }, [playerToPlay]);
 
   const handleSetPlayerButtonClick = (
     e: React.MouseEvent<HTMLButtonElement>

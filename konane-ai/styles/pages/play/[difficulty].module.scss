@@ -19,7 +19,8 @@
   }
   &-cell {
     font-size: 1.5em;
-    width: 50px;
+    font-weight: bold;
+    width: var(--cell-size);
     aspect-ratio: 1 / 1;
     display: flex;
     justify-content: center;
