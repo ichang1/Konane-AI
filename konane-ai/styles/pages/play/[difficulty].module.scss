@@ -26,6 +26,9 @@
     justify-content: center;
     align-items: center;
     border: none;
+    &:focus {
+      outline: none;
+    }
   }
 }
 
@@ -38,6 +41,40 @@
     align-items: center;
     flex-direction: column;
     background-color: #cb4154;
-    border-radius: 10px;
+    border-radius: 1em;
+  }
+}
+
+.active-action-confirmation-modal {
+  position: relative;
+  width: max-content;
+  height: max-content;
+  &-content {
+    padding: 2%;
+    width: 30%;
+    div:not(:last-child) {
+      margin-bottom: 1em;
+    }
+  }
+  &-prompt {
+    font-size: 1.5em;
+    position: relative;
+    top: 0;
+    left: 0;
+  }
+  &-action-description {
+    padding: 0.5em;
+  }
+  &-buttons {
+    display: flex;
+    justify-content: flex-end;
+    position: relative;
+  }
+  &-yes-button,
+  &-no-button {
+    padding: 0.5em 2em;
+    &:not(:last-child) {
+      margin-right: 1em;
+    }
   }
 }

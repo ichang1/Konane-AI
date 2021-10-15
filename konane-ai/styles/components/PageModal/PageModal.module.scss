@@ -1,3 +1,5 @@
+$close-button-background: lightgray;
+
 .page-modal {
   position: absolute;
   z-index: 80;
@@ -8,4 +10,19 @@
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.page-modal-close-button {
+  position: absolute;
+  z-index: 100;
+  top: 0;
+  right: 0;
+  text-align: center;
+  font-weight: bold;
+  border: 2px solid gray;
+  background: $close-button-background;
+  &:hover {
+    cursor: pointer;
+    background: darken($close-button-background, 30%);
+  }
 }

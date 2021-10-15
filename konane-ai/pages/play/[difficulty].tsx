@@ -3,7 +3,6 @@ import Head from "next/head";
 import Image from "next/image";
 import styles from "../../styles/pages/play/[difficulty].module.scss";
 import {
-  Cell,
   konaneDifficulties,
   Player,
   BLACK,
@@ -13,6 +12,9 @@ import {
   actionIsMoveChecker,
   actionIsRemoveChecker,
   Action,
+  verboseCellPosition,
+  RemoveChecker,
+  MoveChecker,
 } from "../../konane/KonaneUtils";
 import { useEffect, useRef, useState } from "react";
 import PageModal from "../../components/PageModal/PageModal";
@@ -23,7 +25,7 @@ const emptyBoard = [...Array(n)].map((_) => [...Array(n)]);
 
 const xCellColor = "#ab4e52";
 const oCellColor = "white";
-const COMPUTER_ANIMATION_SPEED = 1000;
+const ANIMATION_SPEED = 1000;
 
 interface PlayKonaneProps {
   difficulty: string;
@@ -32,6 +34,7 @@ interface PlayKonaneProps {
 const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   const [player, setPlayer] = useState<Player | null>(null);
   const [activeCell, setActiveCell] = useState<[number, number] | null>(null);
+  const [activeAction, setActiveAction] = useState<Action | null>(null);
   const gameRef = useRef<KonaneGame | null>(null);
   const boardRef = useRef<(HTMLButtonElement | null)[][]>(emptyBoard);
 
@@ -60,38 +63,23 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   };
 
   /**
-   *
-   * @param e mouse event on clicking checker that can be removed
-   * @returns null
+   * returns an onclick handler based on an remove action
    */
-  const handleRemoveChecker = (e: MouseEvent) => {
-    e.preventDefault();
-    const game = gameRef.current;
-    if (!game) return;
-    const checkerCell = e.currentTarget as HTMLButtonElement;
-    // position of the checker is in the value attr of the button
-    const coordinates = checkerCell.value.split("-").map((s) => parseInt(s));
-    const [row, col] = coordinates;
-    if (isNaN(row) || isNaN(col)) return;
-    const legalActions = game.getLegalHumanActions();
-    if (!legalActions) return;
-    // find remove action that corresponds to this cell
-    // should be unique
-    const targetRemove = legalActions.find((action) => {
-      if (!actionIsRemoveChecker(action)) return false;
-      const [removeRow, removeCol] = action.cell;
-      return row === removeRow && col === removeCol;
-    });
-    if (!targetRemove) return;
-    game.applyAction(targetRemove);
-    setPlayerToPlay((p) => (p === BLACK ? WHITE : BLACK));
+  const getRemoveCheckerClickHandler = (action: RemoveChecker) => {
+    return () => {
+      setActiveAction(action);
+    };
   };
 
   /**
-   *
-   * @param e mouse event on clicking checker that can be moved
+   * returns an onclick handler based on an move Action
    */
-  const handleMoveChecker = (e: MouseEvent) => {};
+  const getMoveCheckerClickHandler = (action: MoveChecker) => {
+    const handler = () => {
+      setActiveAction(action);
+    };
+    return handler;
+  };
 
   /**
    * adds a dashed moving border to the cells of the checkers that can
@@ -114,14 +102,14 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
         if (!cellElement) return;
         cellElement.classList.add("rotating-cell-border-secondary");
         cellElement.style.cursor = "pointer";
-        cellElement.onclick = handleMoveChecker;
+        cellElement.onclick = getMoveCheckerClickHandler(action);
       } else if (actionIsRemoveChecker(action)) {
         const [row, col] = action.cell;
         const cellElement = boardRef.current[row][col];
         if (!cellElement) return;
         cellElement.classList.add("rotating-cell-border-primary");
         cellElement.style.cursor = "pointer";
-        cellElement.onclick = handleRemoveChecker;
+        cellElement.onclick = getRemoveCheckerClickHandler(action);
       }
     });
   };
@@ -150,13 +138,14 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   };
 
   /**
-   * animates computers action on board
-   * @param action computer's action
+   * animates action on board
+   * @param action action
    * @returns null
    */
-  const animateComputerAction = (action: Action) => {
+  const animateAndResolveAction = (action: Action) => {
     const game = gameRef.current;
     if (!game) return;
+    removeCellsSpecialProps();
     if (actionIsMoveChecker(action)) {
       const { from, to } = action;
       const [fromRow, fromCol] = from;
@@ -164,6 +153,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
       const fromCellElement = boardRef.current[fromRow][fromCol];
       const toCellElement = boardRef.current[toRow][toCol];
       if (!fromCellElement || !toCellElement) return;
+      // sequence of animations/resolvers
       const callbacks = [
         () => {
           // add border to checker that will be moved
@@ -183,7 +173,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
         },
       ];
       callbacks.forEach((cb, idx) => {
-        setTimeout(cb, idx * COMPUTER_ANIMATION_SPEED);
+        setTimeout(cb, idx * ANIMATION_SPEED);
       });
     } else if (actionIsRemoveChecker(action)) {
       const {
@@ -191,6 +181,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
       } = action;
       const cellElement = boardRef.current[row][col];
       if (!cellElement) return;
+      // sequence of animations/resolvers
       const callbacks = [
         () => {
           // add border to checker that will be removed
@@ -204,7 +195,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
         },
       ];
       callbacks.forEach((cb, idx) => {
-        setTimeout(cb, idx * COMPUTER_ANIMATION_SPEED);
+        setTimeout(cb, idx * ANIMATION_SPEED);
       });
     }
   };
@@ -234,7 +225,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
       if (!bestAction) {
         // human wins
       } else {
-        animateComputerAction(bestAction);
+        animateAndResolveAction(bestAction);
       }
     }
   }, [playerToPlay]);
@@ -253,6 +244,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
       setPlayer(value);
     }
   };
+
   return (
     <div className={styles.container}>
       <Head>
@@ -283,6 +275,82 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
           </div>
         </PageModal>
       )}
+      {activeAction && (
+        <PageModal
+          closable={true}
+          onClose={() => {
+            setActiveAction(null);
+          }}
+        >
+          <div
+            className={styles["active-action-confirmation-modal-content"]}
+            style={{
+              background: playerToPlay,
+              color: playerToPlay === BLACK ? WHITE : BLACK,
+              border: `0.5em solid ${
+                actionIsMoveChecker(activeAction)
+                  ? "var(--move-cell-color)"
+                  : actionIsRemoveChecker(activeAction)
+                  ? "var(--remove-cell-color)"
+                  : "black"
+              }`,
+              borderRadius: "1em",
+            }}
+          >
+            <div className={styles["active-action-confirmation-modal-prompt"]}>
+              Are you sure?
+            </div>
+            {actionIsMoveChecker(activeAction) && (
+              <div
+                className={
+                  styles["active-action-confirmation-modal-action-description"]
+                }
+                style={{
+                  borderTop: "2px solid var(--move-cell-color)",
+                  borderBottom: "2px solid var(--move-cell-color)",
+                }}
+              >
+                Move {`(${verboseCellPosition(activeAction.from).join(",")})`}{" "}
+                to {`(${verboseCellPosition(activeAction.to).join(",")})`}
+              </div>
+            )}
+            {actionIsRemoveChecker(activeAction) && (
+              <div
+                className={
+                  styles["active-action-confirmation-modal-action-description"]
+                }
+                style={{
+                  borderTop: "2px solid var(--remove-cell-color)",
+                  borderBottom: "2px solid var(--remove-cell-color)",
+                }}
+              >
+                Remove {`(${verboseCellPosition(activeAction.cell).join(",")})`}
+              </div>
+            )}
+            <div className={styles["active-action-confirmation-modal-buttons"]}>
+              <button
+                className={
+                  styles["active-action-confirmation-modal-yes-button"]
+                }
+                onClick={() => {
+                  setActiveAction(null);
+                  animateAndResolveAction(activeAction);
+                }}
+              >
+                Yes
+              </button>
+              <button
+                className={styles["active-action-confirmation-modal-no-button"]}
+                onClick={() => {
+                  setActiveAction(null);
+                }}
+              >
+                No
+              </button>
+            </div>
+          </div>
+        </PageModal>
+      )}
       {playerToPlay && (
         <div className={styles["player-turn-message"]}>
           {playerToPlay} to play
@@ -300,6 +368,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
                 key={`row${rowN}-col${colN}`}
                 value={`${rowN}-${colN}`}
                 ref={(el) => (boardRef.current[rowN][colN] = el)}
+                tabIndex={-1}
               ></button>
             ))}
           </div>

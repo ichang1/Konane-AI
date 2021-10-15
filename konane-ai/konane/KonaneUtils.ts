@@ -18,14 +18,14 @@ export const cellIsChecker = (cell: Cell): cell is Checker => {
 export type RemoveChecker = {
   player: Player;
   type: "remove";
-  cell: number[];
+  cell: [number, number];
 };
 
 export type MoveChecker = {
   player: Player;
   type: "move";
-  from: number[];
-  to: number[];
+  from: [number, number];
+  to: [number, number];
 };
 
 export type Action = RemoveChecker | MoveChecker;
@@ -95,4 +95,9 @@ export const konaneDifficulties: { [key: string]: ComputerDifficulty } = {
 
 export const stringIsPlayer = (s: string): s is Player => {
   return s === WHITE || s === BLACK;
+};
+
+export const verboseCellPosition = (pos: [number, number]) => {
+  const [row, col] = pos;
+  return [col + 1, 8 - row];
 };

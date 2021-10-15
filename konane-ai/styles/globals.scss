@@ -16,9 +16,9 @@ a {
 }
 
 :root {
-  --button-border-radius: 5px;
+  --button-border-radius: 1em;
   --cell-size: 50px;
-  --border-width: 4px;
+  --active-cell-border-width: 4px;
   --move-cell-color: green;
   --remove-cell-color: red;
 }
@@ -62,7 +62,7 @@ a {
 .rotating-cell-border {
   &-primary {
     @include rotating-border(
-      var(--border-width),
+      var(--active-cell-border-width),
       var(--remove-cell-color),
       var(--cell-size),
       var(--cell-size)
@@ -70,7 +70,7 @@ a {
   }
   &-secondary {
     @include rotating-border(
-      var(--border-width),
+      var(--active-cell-border-width),
       var(--move-cell-color),
       var(--cell-size),
       var(--cell-size)
@@ -95,7 +95,7 @@ a {
 .cell-border {
   &-primary {
     @include border(
-      var(--border-width),
+      var(--active-cell-border-width),
       var(--remove-cell-color),
       var(--cell-size),
       var(--cell-size)
@@ -103,7 +103,7 @@ a {
   }
   &-secondary {
     @include border(
-      var(--border-width),
+      var(--active-cell-border-width),
       var(--move-cell-color),
       var(--cell-size),
       var(--cell-size)
