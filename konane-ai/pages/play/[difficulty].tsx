@@ -23,15 +23,11 @@ const emptyBoard = [...Array(n)].map((_) => [...Array(n)]);
 
 const xCellColor = "#ab4e52";
 const oCellColor = "white";
+const COMPUTER_ANIMATION_SPEED = 1000;
 
 interface PlayKonaneProps {
   difficulty: string;
 }
-
-const MOVE_CELL_COLOR = "green";
-const MOVE_CELL_COLOR_RGBA = "0,128,0,1";
-const REMOVE_CELL_COLOR = "red";
-const REMOVE_CELL_COLOR_RGBA = "255,0,0,1";
 
 const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   const [player, setPlayer] = useState<Player | null>(null);
@@ -143,23 +139,90 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
         if (!cellElement) return;
         cellElement.onclick = null;
         cellElement.classList.remove(
+          "rotating-cell-border-primary",
           "rotating-cell-border-secondary",
-          "rotating-cell-border-primary"
+          "cell-border-primary",
+          "cell-border-secondary"
         );
         cellElement.style.cursor = "default";
       });
     });
   };
 
+  /**
+   * animates computers action on board
+   * @param action computer's action
+   * @returns null
+   */
+  const animateComputerAction = (action: Action) => {
+    const game = gameRef.current;
+    if (!game) return;
+    if (actionIsMoveChecker(action)) {
+      const { from, to } = action;
+      const [fromRow, fromCol] = from;
+      const [toRow, toCol] = to;
+      const fromCellElement = boardRef.current[fromRow][fromCol];
+      const toCellElement = boardRef.current[toRow][toCol];
+      if (!fromCellElement || !toCellElement) return;
+      const callbacks = [
+        () => {
+          // add border to checker that will be moved
+          fromCellElement.classList.add("cell-border-secondary");
+        },
+        () => {
+          // remove border from checker that will be moved
+          fromCellElement.classList.remove("cell-border-secondary");
+          // add border to cell that checker will be moved to
+          toCellElement.classList.add("cell-border-secondary");
+        },
+        () => {
+          // remove border to cell that checker will be moved to
+          toCellElement.classList.remove("cell-border-secondary");
+          game.applyAction(action);
+          setPlayerToPlay((p) => (p === BLACK ? WHITE : BLACK));
+        },
+      ];
+      callbacks.forEach((cb, idx) => {
+        setTimeout(cb, idx * COMPUTER_ANIMATION_SPEED);
+      });
+    } else if (actionIsRemoveChecker(action)) {
+      const {
+        cell: [row, col],
+      } = action;
+      const cellElement = boardRef.current[row][col];
+      if (!cellElement) return;
+      const callbacks = [
+        () => {
+          // add border to checker that will be removed
+          cellElement.classList.add("cell-border-primary");
+        },
+        () => {
+          // remove border from checker that will be removed
+          cellElement.classList.remove("cell-border-primary");
+          game.applyAction(action);
+          setPlayerToPlay((p) => (p === BLACK ? WHITE : BLACK));
+        },
+      ];
+      callbacks.forEach((cb, idx) => {
+        setTimeout(cb, idx * COMPUTER_ANIMATION_SPEED);
+      });
+    }
+  };
+
   useEffect(() => {
     if (player) {
       // once user chooses to play as white or black, set up the game
-      gameRef.current = new KonaneGame(player);
+      gameRef.current = new KonaneGame(
+        player,
+        konaneDifficulties[difficulty] || 0
+      );
       setPlayerToPlay(BLACK);
     }
   }, [player]);
 
   useEffect(() => {
+    const game = gameRef.current;
+    if (!game) return;
     removeCellsSpecialProps();
     addCheckers();
     if (playerToPlay === player) {
@@ -167,6 +230,12 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
       addPlayerLegalCellsProps();
     } else {
       // computer's turn
+      const bestAction = game.getBestComputerAction();
+      if (!bestAction) {
+        // human wins
+      } else {
+        animateComputerAction(bestAction);
+      }
     }
   }, [playerToPlay]);
 
