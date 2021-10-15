@@ -75,13 +75,16 @@ export const actionIsRemoveChecker = (
 export type KonaneGameState = {
   action: Action;
   board: Cell[][];
+  turn: number;
   playerValues: {
     white: number;
     black: number;
   };
 };
 
-export const konaneDifficulties = {
+export type ComputerDifficulty = 0 | 1 | 2 | 3 | 4 | 5;
+
+export const konaneDifficulties: { [key: string]: ComputerDifficulty } = {
   novice: 0,
   easy: 1,
   medium: 2,

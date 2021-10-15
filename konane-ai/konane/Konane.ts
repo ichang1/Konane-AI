@@ -9,9 +9,10 @@ import {
   possibleJumps,
   MoveChecker,
   RemoveChecker,
-  Board,
   BLACK_CHECKER,
   WHITE_CHECKER,
+  actionIsMoveChecker,
+  actionIsRemoveChecker,
 } from "./KonaneUtils";
 
 export default class Konane {
@@ -24,6 +25,101 @@ export default class Konane {
     this.board = this.initializeBoard();
   }
 
+  /**
+   *
+   * @returns array of successor konanes
+   */
+  getSuccessors() {
+    const playerToPlay = this.turn % 2 === 0 ? BLACK : WHITE;
+    const playerLegalActions =
+      playerToPlay === BLACK
+        ? this.getBlackLegalActions()
+        : this.getWhiteLegalActions();
+    if (!playerLegalActions) return [];
+    const successors: Konane[] = [];
+    playerLegalActions.forEach((action) => {
+      const successorBoard = this.getSuccesorBoard(action);
+      const succ = new Konane();
+      succ.turn = this.turn + 1;
+      succ.board = successorBoard;
+      successors.push(succ);
+    });
+    return successors;
+  }
+
+  /**
+   *
+   * @param action action to apply on current board
+   * @returns resulting board
+   */
+  private getSuccesorBoard(action: Action) {
+    const boardCopy: Cell[][] = JSON.parse(JSON.stringify(this.board));
+    if (actionIsMoveChecker(action)) {
+      this.moveChecker(action, boardCopy);
+    } else if (actionIsRemoveChecker(action)) {
+      this.removeChecker(action, boardCopy);
+    }
+    return boardCopy;
+  }
+
+  /**
+   * Applies the action to the board state
+   * @param action the action to apply to the board
+   */
+  applyAction(action: Action) {
+    if (actionIsMoveChecker(action)) {
+      this.moveChecker(action, this.board);
+      this.turn += 1;
+    } else if (actionIsRemoveChecker(action)) {
+      this.removeChecker(action, this.board);
+      this.turn += 1;
+    }
+  }
+
+  /**
+   * Moves a checker on a board in place
+   * @param action action that is a move action
+   * @param board the board to apply the action on
+   */
+  private moveChecker(action: MoveChecker, board: Cell[][]) {
+    const { player, from, to } = action;
+    const [fromRow, fromCol] = from;
+    const [toRow, toCol] = to;
+    const playerChecker = player === BLACK ? BLACK_CHECKER : WHITE_CHECKER;
+
+    // remove checkers along the move
+    const startRow = Math.min(fromRow, toRow);
+    const endRow = Math.max(fromRow, toRow);
+    const startCol = Math.min(fromCol, toCol);
+    const endCol = Math.max(fromCol, toCol);
+    if (startRow === endRow) {
+      // action move checker left/right
+      for (let col = startCol; col <= endCol; col++) {
+        board[startRow][col] = EMPTY;
+      }
+    } else if (startCol == endCol) {
+      // action move checker up/down
+      for (let row = startRow; row <= endRow; row++) {
+        board[row][startCol] = EMPTY;
+      }
+    }
+    board[toRow][toCol] = playerChecker;
+  }
+
+  /**
+   * Removes a checker on a board in place
+   * @param action action that is a remove action
+   * @param board the board to apply the action on
+   */
+  private removeChecker(action: RemoveChecker, board: Cell[][]) {
+    const [row, col] = action.cell;
+    board[row][col] = EMPTY;
+  }
+
+  /**
+   * Gets all legal actions for black
+   * @returns all legal actions for black or null if not black's turn
+   */
   getBlackLegalActions(): Action[] | null {
     if (this.turn % 2 !== 0) return null;
     if (this.turn === 0) {
@@ -34,6 +130,10 @@ export default class Konane {
     return this.getLegalMoves(BLACK);
   }
 
+  /**
+   * Gets all legal actions for white
+   * @returns all legal actions for white nor null if not white's turn
+   */
   getWhiteLegalActions(): Action[] | null {
     if (this.turn % 2 !== 1) return null;
     if (this.turn === 1) {
@@ -45,6 +145,11 @@ export default class Konane {
     return this.getLegalMoves(WHITE);
   }
 
+  /**
+   * Gets legal moves for a player
+   * @param player the player to get the legal moves of
+   * @returns array of legal moves for this player
+   */
   private getLegalMoves(player: Player) {
     const playerCheckerCells =
       player === BLACK
@@ -72,6 +177,13 @@ export default class Konane {
     return legalMoves;
   }
 
+  /**
+   * Gets the legal directions and lengths a checker a specific cell can
+   * be moved to
+   * @param row row of checker
+   * @param col col of checker
+   * @returns direction and length of legal checker moves
+   */
   private getLegalCheckerJumps(row: number, col: number) {
     // gets all legal jumps from a cell
     const legalJumps = possibleJumps.filter((jump) =>
@@ -80,6 +192,13 @@ export default class Konane {
     return legalJumps;
   }
 
+  /**
+   * Checks if moving a checker in a certain way is valid
+   * @param row row of checker
+   * @param col col of checker
+   * @param jump direction and length of a chcker move
+   * @returns true/false
+   */
   private isLegalJump(row: number, col: number, jump: Jump) {
     const { offset, times } = jump;
     const [offsetRow, offsetCol] = offset;
@@ -127,6 +246,12 @@ export default class Konane {
     return true;
   }
 
+  /**
+   *
+   * @param row row of cell
+   * @param col col of cell
+   * @returns if cell is within bounds
+   */
   private isLegalCell(row: number, col: number) {
     // check if cell is within bounds
     if (row < 0 || row >= this.n) return false;
@@ -134,6 +259,11 @@ export default class Konane {
     return true;
   }
 
+  /**
+   *
+   * @param player the player to get the legal removes for
+   * @returns array of legal removes for player
+   */
   private getLegalRemoves(player: Player): RemoveChecker[] {
     if (player === BLACK) {
       return [
@@ -153,6 +283,10 @@ export default class Konane {
     ];
   }
 
+  /**
+   *
+   * @returns a new initial konane board
+   */
   private initializeBoard() {
     const board: Cell[][] = [...Array(this.n)].map((_) => [...Array(this.n)]);
     for (let row = 0; row < this.n; row++) {
@@ -167,6 +301,11 @@ export default class Konane {
     return board;
   }
 
+  /**
+   *
+   * @param player player to get checker cells of
+   * @returns the positions of this player's checkers
+   */
   private getCheckerCells(player: Player) {
     const positions: [number, number][] = [];
     const playerChecker = player === BLACK ? "X" : "O";

@@ -1,3 +1,4 @@
+import { randInt } from "../utils/misc";
 import Konane from "./Konane";
 import {
   Player,
@@ -13,15 +14,19 @@ import {
   RemoveChecker,
   MoveChecker,
   KonaneGameState,
+  ComputerDifficulty,
+  konaneDifficulties,
 } from "./KonaneUtils";
 
 export default class KonaneGame {
   human: Player;
   computer: Player;
-  konane: Konane;
-  constructor(human: Player) {
+  difficulty: ComputerDifficulty;
+  private konane: Konane;
+  constructor(human: Player, difficulty: ComputerDifficulty) {
     this.human = human;
     this.computer = human === WHITE ? BLACK : WHITE;
+    this.difficulty = difficulty;
     this.konane = new Konane();
   }
 
@@ -43,6 +48,28 @@ export default class KonaneGame {
     }
   }
 
+  getBestComputerAction(): Action | null {
+    const legalActions = this.getLegalComputerActions();
+    if (!legalActions) return null;
+    switch (this.difficulty) {
+      case konaneDifficulties.novice:
+        const randIdx = randInt(0, legalActions.length - 1);
+        return legalActions[randIdx];
+      case konaneDifficulties.easy:
+        return null;
+      case konaneDifficulties.medium:
+        return null;
+      case konaneDifficulties.hard:
+        return null;
+      case konaneDifficulties.challenger:
+        return null;
+      case konaneDifficulties.grandmaster:
+        return null;
+      default:
+        return null;
+    }
+  }
+
   getLegalComputerActions() {
     if (this.computer === BLACK) {
       return this.konane.getBlackLegalActions();
@@ -51,74 +78,7 @@ export default class KonaneGame {
     }
   }
 
-  getSuccessors() {
-    const playerToPlay = this.konane.turn % 2 === 0 ? BLACK : WHITE;
-    const playerLegalActions =
-      playerToPlay === BLACK
-        ? this.konane.getBlackLegalActions()
-        : this.konane.getWhiteLegalActions();
-    if (!playerLegalActions) return [];
-    const successors: KonaneGameState[] = [];
-    playerLegalActions.forEach((action, idx) => {
-      const successorBoard = this.getSuccesorBoard(action);
-      successors.push({
-        action,
-        board: successorBoard,
-        playerValues: {
-          white: 0,
-          black: 0,
-        },
-      });
-    });
-    return successors;
-  }
-
   applyAction(action: Action) {
-    if (actionIsMoveChecker(action)) {
-      this.moveChecker(action, this.board);
-    } else if (actionIsRemoveChecker(action)) {
-      this.removeChecker(action, this.board);
-    }
-    this.konane.turn += 1;
-  }
-
-  private getSuccesorBoard(action: Action) {
-    const boardCopy: Cell[][] = JSON.parse(JSON.stringify(this.konane.board));
-    if (actionIsMoveChecker(action)) {
-      this.moveChecker(action, boardCopy);
-    } else if (actionIsRemoveChecker(action)) {
-      this.removeChecker(action, boardCopy);
-    }
-    return boardCopy;
-  }
-
-  private moveChecker(action: MoveChecker, board: Cell[][]) {
-    const { player, from, to } = action;
-    const [fromRow, fromCol] = from;
-    const [toRow, toCol] = to;
-    const playerChecker = player === BLACK ? BLACK_CHECKER : WHITE_CHECKER;
-
-    // remove checkers along the move
-    const startRow = Math.min(fromRow, toRow);
-    const endRow = Math.max(fromRow, toRow);
-    const startCol = Math.min(fromCol, toCol);
-    const endCol = Math.max(fromCol, toCol);
-    if (startRow === endRow) {
-      // action move checker left/right
-      for (let col = startCol; col <= endCol; col++) {
-        board[startRow][col] = EMPTY;
-      }
-    } else if (startCol == endCol) {
-      // action move checker up/down
-      for (let row = startRow; row <= endRow; row++) {
-        board[row][startCol] = EMPTY;
-      }
-    }
-    board[toRow][toCol] = playerChecker;
-  }
-
-  private removeChecker(action: RemoveChecker, board: Cell[][]) {
-    const [row, col] = action.cell;
-    board[row][col] = EMPTY;
+    this.konane.applyAction(action);
   }
 }
