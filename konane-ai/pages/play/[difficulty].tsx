@@ -36,9 +36,6 @@ const REMOVE_CELL_COLOR_RGBA = "255,0,0,1";
 const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   const [player, setPlayer] = useState<Player | null>(null);
   const [activeCell, setActiveCell] = useState<[number, number] | null>(null);
-  const [playerLegalActions, setPlayerLegalActions] = useState<Action[] | null>(
-    null
-  );
   const gameRef = useRef<KonaneGame | null>(null);
   const boardRef = useRef<(HTMLButtonElement | null)[][]>(emptyBoard);
 
@@ -46,93 +43,111 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
     gameRef.current?.playerToPlay
   );
 
-  const handlePrimaryCellClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    const { value } = e.currentTarget;
-    if (!value) {
-      console.log("Something went wrong");
-    }
-    const [row, col] = value.split("-").map((n) => parseInt(n));
-    if (isNaN(row) || isNaN(col)) return;
-    const cellElement = boardRef.current[row][col];
-    if (!cellElement) return;
-    // reset border for everything
-    boardRef.current.forEach((row) => {
-      row.forEach((cell) => {
-        if (!cell) return;
-        cell.style.border = "none";
-      });
-    });
-    if (activeCell === [row, col]) {
-      // clicked on the same active cell
-      setActiveCell(null);
-      if (!playerLegalActions) return;
-      playerLegalActions.forEach((action) => {
-        if (actionIsMoveChecker(action)) {
-          const { from } = action;
-          const [row, col] = from;
-          const cellElement = boardRef.current[row][col];
-          if (!cellElement) return;
-          cellElement.style.border = "2px dashed green";
-        } else if (actionIsRemoveChecker(action)) {
-          const [row, col] = action.cell;
-          const cellElement = boardRef.current[row][col];
-          if (!cellElement) return;
-          cellElement.style.border = "2px dashed green";
+  /**
+   * draws the checkers of the current game state
+   * @returns null
+   */
+  const addCheckers = () => {
+    if (!gameRef.current) return;
+    const internalBoard = gameRef.current.board;
+    internalBoard.forEach((row, rowN) => {
+      row.forEach((cellVal, colN) => {
+        const cellElement = boardRef.current[rowN][colN];
+        if (!cellElement) return;
+        if (cellIsChecker(cellVal)) {
+          cellElement.innerHTML = cellVal;
+        } else {
+          cellElement.innerHTML = "";
         }
       });
-    } else {
-      // turn on
-      // turn on related cells
-      cellElement.style.border = "2px solid green";
-      if (!playerLegalActions) return;
-      const relatedCells = playerLegalActions
-        // get actions related to clicked cell
-        .filter((action) => {
-          if (actionIsMoveChecker(action)) {
-            return action.from === [row, col];
-          } else if (actionIsRemoveChecker(action)) {
-            return action.cell === [row, col];
-          } else {
-            return false;
-          }
-        })
-        // get coordinates from actions
-        .map((action) => {
-          if (actionIsMoveChecker(action)) {
-            return action.to;
-          } else if (actionIsRemoveChecker(action)) {
-            return action.cell;
-          } else {
-            return null;
-          }
-        });
-      relatedCells.forEach((cell) => {
-        if (!cell) return;
-        const [row, col] = cell;
-        const relatedCellElement = boardRef.current[row][col];
-        if (!relatedCellElement) return;
-        relatedCellElement.style.border = "2px dashed green";
-      });
-    }
+    });
   };
 
-  const addBoardHumanProps = () => {
-    // adds props to cells when human's turn
-    if (!gameRef.current) return;
-    if (!boardRef.current[0]) return;
+  /**
+   *
+   * @param e mouse event on clicking checker that can be removed
+   * @returns null
+   */
+  const handleRemoveChecker = (e: MouseEvent) => {
+    e.preventDefault();
     const game = gameRef.current;
-    const playerToPlay = game.playerToPlay;
-    if (playerToPlay !== player) return;
+    if (!game) return;
+    const checkerCell = e.currentTarget as HTMLButtonElement;
+    // position of the checker is in the value attr of the button
+    const coordinates = checkerCell.value.split("-").map((s) => parseInt(s));
+    const [row, col] = coordinates;
+    if (isNaN(row) || isNaN(col)) return;
     const legalActions = game.getLegalHumanActions();
     if (!legalActions) return;
-    legalActions.forEach((action) => {
+    // find remove action that corresponds to this cell
+    // should be unique
+    const targetRemove = legalActions.find((action) => {
+      if (!actionIsRemoveChecker(action)) return false;
+      const [removeRow, removeCol] = action.cell;
+      return row === removeRow && col === removeCol;
+    });
+    if (!targetRemove) return;
+    game.applyAction(targetRemove);
+    setPlayerToPlay((p) => (p === BLACK ? WHITE : BLACK));
+  };
+
+  /**
+   *
+   * @param e mouse event on clicking checker that can be moved
+   */
+  const handleMoveChecker = (e: MouseEvent) => {};
+
+  /**
+   * adds a dashed moving border to the cells of the checkers that can
+   * be moved/removed legally
+   * adds onclick to remove/move
+   * adds valid actions as
+   * @returns null
+   */
+  const addPlayerLegalCellsProps = () => {
+    if (playerToPlay !== player) return;
+    if (!gameRef.current) return;
+    const game = gameRef.current;
+    const playerLegalActions = game.getLegalHumanActions();
+    if (!playerLegalActions) return;
+    playerLegalActions.forEach((action) => {
       if (actionIsMoveChecker(action)) {
-        const { to, from } = action;
+        const { from } = action;
+        const [row, col] = from;
+        const cellElement = boardRef.current[row][col];
+        if (!cellElement) return;
+        cellElement.classList.add("rotating-cell-border-secondary");
+        cellElement.style.cursor = "pointer";
+        cellElement.onclick = handleMoveChecker;
       } else if (actionIsRemoveChecker(action)) {
-        const { cell } = action;
-        const [row, col] = cell;
+        const [row, col] = action.cell;
+        const cellElement = boardRef.current[row][col];
+        if (!cellElement) return;
+        cellElement.classList.add("rotating-cell-border-primary");
+        cellElement.style.cursor = "pointer";
+        cellElement.onclick = handleRemoveChecker;
       }
+    });
+  };
+
+  /**
+   * removes the added dashed border's, onclicks, pointer styles
+   * @returns null
+   */
+  const removeCellsSpecialProps = () => {
+    if (!gameRef.current) return;
+    const internalBoard = gameRef.current.board;
+    internalBoard.forEach((row, rowN) => {
+      row.forEach((_, colN) => {
+        const cellElement = boardRef.current[rowN][colN];
+        if (!cellElement) return;
+        cellElement.onclick = null;
+        cellElement.classList.remove(
+          "rotating-cell-border-secondary",
+          "rotating-cell-border-primary"
+        );
+        cellElement.style.cursor = "default";
+      });
     });
   };
 
@@ -145,28 +160,14 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   }, [player]);
 
   useEffect(() => {
-    // once user chooses who to play as render the board
-    // ^ helps with initial render
-    // once it is the other player's turn, render the new board
-    if (!gameRef.current) return;
-    const internalBoard = gameRef.current.board;
-    internalBoard.forEach((row, rowN) => {
-      row.forEach((cellVal, colN) => {
-        if (cellIsChecker(cellVal)) {
-          const cellElement = boardRef.current[rowN][colN];
-          if (!cellElement) return;
-          cellElement.innerHTML = cellVal;
-          if (rowN === 0 && colN === 0) {
-            cellElement.classList.add("rotating-cell-border-primary");
-          }
-        }
-      });
-    });
-  }, [player, gameRef.current?.konane.turn]);
-
-  useEffect(() => {
-    // outline possible moves for human when it is their turn
-    if (playerToPlay !== player) return;
+    removeCellsSpecialProps();
+    addCheckers();
+    if (playerToPlay === player) {
+      // human's turn
+      addPlayerLegalCellsProps();
+    } else {
+      // computer's turn
+    }
   }, [playerToPlay]);
 
   const handleSetPlayerButtonClick = (
