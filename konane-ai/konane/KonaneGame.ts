@@ -49,12 +49,13 @@ export default class KonaneGame {
   }
 
   getBestComputerAction(): Action | null {
-    const legalActions = this.getLegalComputerActions();
-    if (!legalActions) return null;
     switch (this.difficulty) {
       case konaneDifficulties.novice:
-        const randIdx = randInt(0, legalActions.length - 1);
-        return legalActions[randIdx];
+        const legalActions = this.getLegalComputerActions();
+        if (!legalActions) return null;
+        const legalActionsFlat = Object.values(legalActions).flat(1);
+        const randIdx = randInt(0, legalActionsFlat.length - 1);
+        return legalActionsFlat[randIdx];
       case konaneDifficulties.easy:
         return null;
       case konaneDifficulties.medium:

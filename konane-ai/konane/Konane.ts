@@ -36,8 +36,10 @@ export default class Konane {
         ? this.getBlackLegalActions()
         : this.getWhiteLegalActions();
     if (!playerLegalActions) return [];
+    const playerLegalActionsFlat: Action[] =
+      Object.values(playerLegalActions).flat(1);
     const successors: Konane[] = [];
-    playerLegalActions.forEach((action) => {
+    playerLegalActionsFlat.forEach((action) => {
       const successorBoard = this.getSuccesorBoard(action);
       const succ = new Konane();
       succ.turn = this.turn + 1;
@@ -120,7 +122,7 @@ export default class Konane {
    * Gets all legal actions for black
    * @returns all legal actions for black or null if not black's turn
    */
-  getBlackLegalActions(): Action[] | null {
+  getBlackLegalActions(): { [key: string]: Action[] } | null {
     if (this.turn % 2 !== 0) return null;
     if (this.turn === 0) {
       // remove black checker
@@ -134,7 +136,7 @@ export default class Konane {
    * Gets all legal actions for white
    * @returns all legal actions for white nor null if not white's turn
    */
-  getWhiteLegalActions(): Action[] | null {
+  getWhiteLegalActions(): { [key: string]: Action[] } | null {
     if (this.turn % 2 !== 1) return null;
     if (this.turn === 1) {
       // remove white checker adjacent to initial removed black checker
@@ -155,25 +157,25 @@ export default class Konane {
       player === BLACK
         ? this.getCheckerCells(BLACK)
         : this.getCheckerCells(WHITE);
-    const legalMoves: MoveChecker[] = [...playerCheckerCells].flatMap(
-      ([curRow, curCol]) => {
-        // legal jumps from this cell
-        const legalCheckerJumpsFromCell = this.getLegalCheckerJumps(
-          curRow,
-          curCol
-        );
-        // convert jump to move
-        const legalMovesFromCell: MoveChecker[] = legalCheckerJumpsFromCell.map(
-          ({ offset: [offsetRow, offsetCol], times }) => ({
-            player,
-            type: "move",
-            from: [curRow, curCol],
-            to: [curRow + offsetRow * times, curCol + offsetCol * times],
-          })
-        );
-        return legalMovesFromCell;
-      }
-    );
+    const legalMoves: { [key: string]: MoveChecker[] } = {};
+    playerCheckerCells.forEach(([curRow, curCol]) => {
+      // legal jumps from this cell
+      const legalCheckerJumpsFromCell = this.getLegalCheckerJumps(
+        curRow,
+        curCol
+      );
+      // convert jump to move
+      const legalMovesFromCell: MoveChecker[] = legalCheckerJumpsFromCell.map(
+        ({ offset: [offsetRow, offsetCol], times }) => ({
+          player,
+          type: "move",
+          from: [curRow, curCol],
+          to: [curRow + offsetRow * times, curCol + offsetCol * times],
+        })
+      );
+      if (legalMovesFromCell.length === 0) return;
+      legalMoves[[curRow, curCol].toString()] = legalMovesFromCell;
+    });
     return legalMoves;
   }
 
@@ -264,23 +266,37 @@ export default class Konane {
    * @param player the player to get the legal removes for
    * @returns array of legal removes for player
    */
-  private getLegalRemoves(player: Player): RemoveChecker[] {
+  private getLegalRemoves(player: Player): { [key: string]: RemoveChecker[] } {
     if (player === BLACK) {
-      return [
-        {
+      const legalRemoveCells: [number, number][] = [
+        [Math.floor(this.n / 2) - 1, Math.floor(this.n / 2) - 1],
+      ];
+      const legalRemoves: { [key: string]: RemoveChecker[] } = {};
+      legalRemoveCells.forEach((cell) => {
+        const action: RemoveChecker = {
           player: BLACK,
           type: "remove",
-          cell: [Math.floor(this.n / 2) - 1, Math.floor(this.n / 2) - 1],
-        },
-      ];
+          cell,
+        };
+        legalRemoves[cell.toString()] = [action];
+      });
+      return legalRemoves;
     }
-    return [
-      {
+    // player is white
+    // normally there is more than 1 option
+    const legalRemoveCells: [number, number][] = [
+      [Math.floor(this.n / 2) - 1, Math.floor(this.n / 2)],
+    ];
+    const legalRemoves: { [key: string]: RemoveChecker[] } = {};
+    legalRemoveCells.forEach((cell) => {
+      const action: RemoveChecker = {
         player: WHITE,
         type: "remove",
-        cell: [Math.floor(this.n / 2) - 1, Math.floor(this.n / 2)],
-      },
-    ];
+        cell,
+      };
+      legalRemoves[cell.toString()] = [action];
+    });
+    return legalRemoves;
   }
 
   /**

@@ -74,11 +74,51 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   /**
    * returns an onclick handler based on an move Action
    */
-  const getMoveCheckerClickHandler = (action: MoveChecker) => {
+  const getMoveCheckerClickHandler = (
+    cell: [number, number],
+    playerLegalMoves: MoveChecker[]
+  ) => {
+    const [row, col] = cell;
+    const cellElement = boardRef.current[row][col];
+    if (!cellElement) return null;
     const handler = () => {
-      setActiveAction(action);
+      setActiveCell(cell);
+      removeAllCellsSpecialProps();
+      playerLegalMoves.forEach((checkerMove) => {
+        const {
+          to: [toRow, toCol],
+        } = checkerMove;
+        const moveToCellElement = boardRef.current[toRow][toCol];
+        if (!moveToCellElement) return;
+        moveToCellElement.classList.add("rotating-cell-border-secondary");
+        moveToCellElement.style.cursor = "pointer";
+        moveToCellElement.onclick = () => {
+          setActiveAction(checkerMove);
+        };
+      });
     };
     return handler;
+  };
+
+  const addCellProps = (cell: [number, number], legalActions: Action[]) => {
+    if (legalActions.length === 0) return;
+    const [row, col] = cell;
+    const cellElement = boardRef.current[row][col];
+    if (!cellElement) return;
+    // there is at least one action
+    // check if that action is a remove or move
+    if (actionIsMoveChecker(legalActions[0])) {
+      cellElement.classList.add("rotating-cell-border-secondary");
+      cellElement.style.cursor = "pointer";
+      cellElement.onclick = getMoveCheckerClickHandler(
+        cell,
+        legalActions as MoveChecker[]
+      );
+    } else if (actionIsRemoveChecker(legalActions[0])) {
+      cellElement.classList.add("rotating-cell-border-primary");
+      cellElement.style.cursor = "pointer";
+      cellElement.onclick = getRemoveCheckerClickHandler(legalActions[0]);
+    }
   };
 
   /**
@@ -94,31 +134,21 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
     const game = gameRef.current;
     const playerLegalActions = game.getLegalHumanActions();
     if (!playerLegalActions) return;
-    playerLegalActions.forEach((action) => {
-      if (actionIsMoveChecker(action)) {
-        const { from } = action;
-        const [row, col] = from;
-        const cellElement = boardRef.current[row][col];
-        if (!cellElement) return;
-        cellElement.classList.add("rotating-cell-border-secondary");
-        cellElement.style.cursor = "pointer";
-        cellElement.onclick = getMoveCheckerClickHandler(action);
-      } else if (actionIsRemoveChecker(action)) {
-        const [row, col] = action.cell;
-        const cellElement = boardRef.current[row][col];
-        if (!cellElement) return;
-        cellElement.classList.add("rotating-cell-border-primary");
-        cellElement.style.cursor = "pointer";
-        cellElement.onclick = getRemoveCheckerClickHandler(action);
+    Object.entries(playerLegalActions).forEach(
+      ([cellString, actionsFromCell]) => {
+        const [row, col] = cellString.split(",").map((n) => parseInt(n));
+        if (isNaN(row) || isNaN(col) || row === undefined || col === undefined)
+          return;
+        addCellProps([row, col], actionsFromCell);
       }
-    });
+    );
   };
 
   /**
    * removes the added dashed border's, onclicks, pointer styles
    * @returns null
    */
-  const removeCellsSpecialProps = () => {
+  const removeAllCellsSpecialProps = () => {
     if (!gameRef.current) return;
     const internalBoard = gameRef.current.board;
     internalBoard.forEach((row, rowN) => {
@@ -145,7 +175,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   const animateAndResolveAction = (action: Action) => {
     const game = gameRef.current;
     if (!game) return;
-    removeCellsSpecialProps();
+    removeAllCellsSpecialProps();
     if (actionIsMoveChecker(action)) {
       const { from, to } = action;
       const [fromRow, fromCol] = from;
@@ -214,7 +244,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   useEffect(() => {
     const game = gameRef.current;
     if (!game) return;
-    removeCellsSpecialProps();
+    removeAllCellsSpecialProps();
     addCheckers();
     if (playerToPlay === human) {
       // human's turn
@@ -334,6 +364,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
                 }
                 onClick={() => {
                   setActiveAction(null);
+                  setActiveCell(null);
                   animateAndResolveAction(activeAction);
                 }}
               >
@@ -343,6 +374,9 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
                 className={styles["active-action-confirmation-modal-no-button"]}
                 onClick={() => {
                   setActiveAction(null);
+                  setActiveCell(null);
+                  removeAllCellsSpecialProps();
+                  addPlayerLegalCellsProps();
                 }}
               >
                 No
