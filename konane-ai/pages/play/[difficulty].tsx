@@ -310,6 +310,9 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
           closable={true}
           onClose={() => {
             setActiveAction(null);
+            setActiveCell(null);
+            removeAllCellsSpecialProps();
+            addPlayerLegalCellsProps();
           }}
         >
           <div

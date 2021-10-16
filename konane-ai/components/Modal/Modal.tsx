@@ -17,6 +17,7 @@ const PageModal: React.FC<ModalProps> = ({
 }) => {
   const [open, setOpen] = useState(true);
   const handleClose = () => {
+    // clicked close button
     setOpen(false);
     if (onClose) onClose();
   };
@@ -33,7 +34,9 @@ const PageModal: React.FC<ModalProps> = ({
     };
     window.addEventListener("keydown", keydownlistener);
     return () => {
-      if (onClose) onClose();
+      // if not already returning null and will umount due to something external execute onClose
+      if (onClose && !open) onClose();
+      // remove esc key listener
       window.removeEventListener("keydown", keydownlistener);
     };
   }, []);
