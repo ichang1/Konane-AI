@@ -358,6 +358,10 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
             style={{
               background: human === BLACK ? BLACK : WHITE,
               color: human === BLACK ? WHITE : BLACK,
+              position: "relative",
+              ...(playerToPlay === human
+                ? { boxShadow: "0 0 1em 1em gold", zIndex: 5 }
+                : {}),
             }}
           >
             You: {human.toUpperCase()}
@@ -367,9 +371,13 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
             style={{
               background: human === BLACK ? WHITE : BLACK,
               color: human === BLACK ? BLACK : WHITE,
+              position: "relative",
+              ...(playerToPlay !== human
+                ? { boxShadow: "0 0 1em 1em gold", zIndex: 5 }
+                : {}),
             }}
           >
-            Computer: {(playerToPlay === BLACK ? WHITE : BLACK).toUpperCase()}
+            Computer: {(human === BLACK ? WHITE : BLACK).toUpperCase()}
           </div>
         </div>
       )}
