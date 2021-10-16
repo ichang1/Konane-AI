@@ -1,0 +1,40 @@
+$close-button-background: lightgray;
+
+.modal {
+  position: absolute;
+  z-index: 80;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: max-content;
+  &-full-page {
+    position: absolute;
+    z-index: 80;
+    // way to have opacity for only parent and not children
+    background: rgba(255, 255, 255, 0.3);
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+.modal-close-button {
+  position: absolute;
+  z-index: 100;
+  top: 0;
+  right: 0;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.25em;
+  margin: 0.5em;
+  color: grey;
+  background: transparent;
+  border: none;
+  // background: none;
+  &:hover {
+    cursor: pointer;
+    // background: darken($close-button-background, 30%);
+  }
+}

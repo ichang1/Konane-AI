@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from "react";
-import styles from "../../styles/components/PageModal/PageModal.module.scss";
+import styles from "../../styles/components/Modal/Modal.module.scss";
 
-interface PageModalProps {
+interface ModalProps {
   children: React.ReactNode;
   customStyles?: { [key: string]: string };
   closable?: boolean;
   onClose?: () => void;
+  full?: boolean;
 }
-const PageModal: React.FC<PageModalProps> = ({
+const PageModal: React.FC<ModalProps> = ({
   children,
   customStyles,
   closable,
   onClose,
+  full,
 }) => {
   const [open, setOpen] = useState(true);
   const handleClose = () => {
@@ -25,24 +27,38 @@ const PageModal: React.FC<PageModalProps> = ({
   useEffect(() => {
     if (!close) return;
     const keydownlistener = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+      if (e.key === "Escape" && closable) {
         handleClose();
       }
     };
     window.addEventListener("keydown", keydownlistener);
     return () => {
+      if (onClose) onClose();
       window.removeEventListener("keydown", keydownlistener);
     };
   }, []);
 
   if (!open) return null;
+  if (full) {
+    return (
+      <div className={styles["modal-full-page"]} style={customStyles}>
+        {closable && (
+          <button
+            className={styles["modal-close-button"]}
+            onClick={handleClose}
+          >
+            X
+          </button>
+        )}
+        {children}
+      </div>
+    );
+  }
+  // is open and not full page
   return (
-    <div className={styles["page-modal"]} style={customStyles}>
+    <div className={styles["modal"]} style={customStyles}>
       {closable && (
-        <button
-          className={styles["page-modal-close-button"]}
-          onClick={handleClose}
-        >
+        <button className={styles["modal-close-button"]} onClick={handleClose}>
           X
         </button>
       )}
