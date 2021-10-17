@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import styles from "../../styles/components/Modal/Modal.module.scss";
 
 interface ModalProps {
+  className?: string;
   children: React.ReactNode;
   customStyles?: { [key: string]: string };
   closable?: boolean;
@@ -9,6 +10,7 @@ interface ModalProps {
   full?: boolean;
 }
 const PageModal: React.FC<ModalProps> = ({
+  className,
   children,
   customStyles,
   closable,
@@ -34,7 +36,7 @@ const PageModal: React.FC<ModalProps> = ({
     };
     window.addEventListener("keydown", keydownlistener);
     return () => {
-      // if not already returning null and will umount due to something external execute onClose
+      // if not already returning null and will umount due to something external, execute onClose
       if (onClose && !open) onClose();
       // remove esc key listener
       window.removeEventListener("keydown", keydownlistener);
@@ -44,7 +46,12 @@ const PageModal: React.FC<ModalProps> = ({
   if (!open) return null;
   if (full) {
     return (
-      <div className={styles["modal-full-page"]} style={customStyles}>
+      <div
+        className={`${styles["modal-full-page"]}${
+          className ? " " + className : ""
+        }`}
+        style={customStyles}
+      >
         {closable && (
           <button
             className={styles["modal-close-button"]}
@@ -59,7 +66,10 @@ const PageModal: React.FC<ModalProps> = ({
   }
   // is open and not full page
   return (
-    <div className={styles["modal"]} style={customStyles}>
+    <div
+      className={`${styles["modal"]}${className ? " " + className : ""}`}
+      style={customStyles}
+    >
       {closable && (
         <button className={styles["modal-close-button"]} onClick={handleClose}>
           X

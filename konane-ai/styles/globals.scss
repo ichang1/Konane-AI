@@ -17,10 +17,14 @@ a {
 
 :root {
   --button-border-radius: 1em;
-  --cell-size: 50px;
+  --board-border-width: 1em;
+  --cell-size: min(50px, 100vw / 8 - 2 * var(--board-border-width) / 8);
   --active-cell-border-width: 5px;
   --move-cell-color: green;
   --remove-cell-color: red;
+  --black: black;
+  --white: #faebd7;
+  --checker-diameter: 75%;
 }
 
 // https://stackoverflow.com/a/52963366
@@ -109,4 +113,18 @@ a {
       var(--cell-size)
     );
   }
+}
+
+@mixin circle($background, $diameter) {
+  background: $background;
+  border-radius: 50%;
+  width: $diameter;
+  height: $diameter;
+}
+
+.checker-black {
+  @include circle(var(--black), var(--checker-diameter));
+}
+.checker-white {
+  @include circle(var(--white), var(--checker-diameter));
 }

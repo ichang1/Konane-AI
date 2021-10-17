@@ -24,8 +24,8 @@ const n = 8;
 const emptyBoard = [...Array(n)].map((_) => [...Array(n)]);
 
 const xCellColor = "#ab4e52";
-const oCellColor = "white";
-const ANIMATION_SPEED = 1000;
+const oCellColor = "maroon";
+const ANIMATION_SPEED = 1250;
 
 interface PlayKonaneProps {
   difficulty: string;
@@ -35,32 +35,13 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   const [human, setHuman] = useState<Player | null>(null);
   const [activeCell, setActiveCell] = useState<[number, number] | null>(null);
   const [activeAction, setActiveAction] = useState<Action | null>(null);
+  const [humanWins, setHumanWins] = useState<boolean | null>(null);
   const gameRef = useRef<KonaneGame | null>(null);
   const boardRef = useRef<(HTMLButtonElement | null)[][]>(emptyBoard);
 
   const [playerToPlay, setPlayerToPlay] = useState<Player | undefined>(
     gameRef.current?.playerToPlay
   );
-
-  /**
-   * draws the checkers of the current game state
-   * @returns null
-   */
-  const addCheckers = () => {
-    if (!gameRef.current) return;
-    const internalBoard = gameRef.current.board;
-    internalBoard.forEach((row, rowN) => {
-      row.forEach((cellVal, colN) => {
-        const cellElement = boardRef.current[rowN][colN];
-        if (!cellElement) return;
-        if (cellIsChecker(cellVal)) {
-          cellElement.innerHTML = cellVal;
-        } else {
-          cellElement.innerHTML = "";
-        }
-      });
-    });
-  };
 
   /**
    * returns an onclick handler based on an remove action
@@ -100,7 +81,10 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
     return handler;
   };
 
-  const addCellProps = (cell: [number, number], legalActions: Action[]) => {
+  const addCellSpecialProps = (
+    cell: [number, number],
+    legalActions: Action[]
+  ) => {
     if (legalActions.length === 0) return;
     const [row, col] = cell;
     const cellElement = boardRef.current[row][col];
@@ -128,7 +112,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
    * adds valid actions as
    * @returns null
    */
-  const addPlayerLegalCellsProps = () => {
+  const addPlayerCellsSpecialProps = () => {
     if (playerToPlay !== human) return;
     if (!gameRef.current) return;
     const game = gameRef.current;
@@ -139,7 +123,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
         const [row, col] = cellString.split(",").map((n) => parseInt(n));
         if (isNaN(row) || isNaN(col) || row === undefined || col === undefined)
           return;
-        addCellProps([row, col], actionsFromCell);
+        addCellSpecialProps([row, col], actionsFromCell);
       }
     );
   };
@@ -230,6 +214,51 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
     }
   };
 
+  const escapeActiveActionHandler = () => {
+    if (!activeAction) return;
+    setActiveAction(null);
+    setActiveCell(null);
+    if (actionIsMoveChecker(activeAction) && activeCell) {
+      const game = gameRef.current;
+      if (!game) return;
+      const legalHumanActions = game.getLegalHumanActions();
+      if (!legalHumanActions) return;
+      const thisCellClickHandler = getMoveCheckerClickHandler(
+        activeCell,
+        legalHumanActions[activeCell.toString()] as MoveChecker[]
+      );
+      if (thisCellClickHandler) thisCellClickHandler();
+    } else {
+      removeAllCellsSpecialProps();
+      addPlayerCellsSpecialProps();
+    }
+  };
+
+  const escapeActiveCellHandler = () => {
+    if (!activeCell) return;
+    setActiveCell(null);
+    removeAllCellsSpecialProps();
+    addPlayerCellsSpecialProps();
+    console.log("escaped active cell");
+  };
+
+  useEffect(() => {
+    console.log(activeCell);
+  }, [activeCell]);
+
+  // useEffect(() => {
+  //   const escapeActiveCellListener = (e: KeyboardEvent) => {
+  //     console.log("escape cell listener", e.key, activeCell, !!activeCell);
+  //     if (e.key === "Escape" && activeCell !== null) {
+  //       escapeActiveCellHandler();
+  //     }
+  //   };
+  //   window.addEventListener("keydown", escapeActiveCellListener);
+  //   return () => {
+  //     window.removeEventListener("keydown", escapeActiveCellListener);
+  //   };
+  // }, []);
+
   useEffect(() => {
     if (human) {
       // once user chooses to play as white or black, set up the game
@@ -245,15 +274,32 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
     const game = gameRef.current;
     if (!game) return;
     removeAllCellsSpecialProps();
-    addCheckers();
     if (playerToPlay === human) {
       // human's turn
-      addPlayerLegalCellsProps();
+      const playerLegalActions = game.getLegalHumanActions();
+      if (!playerLegalActions) return;
+      if (Object.keys(playerLegalActions).length === 0) {
+        // human has no moves left, human loses
+        setHumanWins(false);
+        console.log(
+          `human: ${human} loses, computer: ${
+            human === BLACK ? WHITE : BLACK
+          } wins`
+        );
+      } else {
+        addPlayerCellsSpecialProps();
+      }
     } else {
       // computer's turn
       const bestAction = game.getBestComputerAction();
       if (!bestAction) {
-        // human wins
+        // computer has no moves left, human wins
+        setHumanWins(true);
+        console.log(
+          `human: ${human} wins, computer: ${
+            human === BLACK ? WHITE : BLACK
+          } loses`
+        );
       } else {
         animateAndResolveAction(bestAction);
       }
@@ -276,44 +322,48 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   };
 
   return (
-    <div className={styles.container}>
+    <div
+      className={styles.container}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") escapeActiveCellHandler();
+      }}
+      tabIndex={0}
+    >
       <Head>
         <title>Create Next App</title>
         <meta name="description" content="Generated by create next app" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
       {!human && (
-        <Modal full={true}>
+        <Modal className={"set-player-modal"} full={true}>
           <div className={styles["set-player-modal-content"]}>
-            <div className={styles["set-player-modal-prompt-message"]}>
+            <h1 className={styles["set-player-modal-prompt-message"]}>
               Choose
+            </h1>
+            <div className={styles["set-player-modal-buttons-container"]}>
+              <button
+                value={WHITE}
+                className={styles["set-player-modal-white-button"]}
+                onClick={handleSetPlayerButtonClick}
+              >
+                White
+              </button>
+              <button
+                value={BLACK}
+                className={styles["set-player-modal-black-button"]}
+                onClick={handleSetPlayerButtonClick}
+              >
+                Black
+              </button>
             </div>
-            <button
-              value={WHITE}
-              className={styles["set-player-modal-white-button"]}
-              onClick={handleSetPlayerButtonClick}
-            >
-              White
-            </button>
-            <button
-              value={BLACK}
-              className={styles["set-player-modal-black-button"]}
-              onClick={handleSetPlayerButtonClick}
-            >
-              Black
-            </button>
           </div>
         </Modal>
       )}
       {activeAction && (
         <Modal
+          className={styles["active-action-confirmation-modal"]}
           closable={true}
-          onClose={() => {
-            setActiveAction(null);
-            setActiveCell(null);
-            removeAllCellsSpecialProps();
-            addPlayerLegalCellsProps();
-          }}
+          onClose={escapeActiveActionHandler}
         >
           <div
             className={styles["active-action-confirmation-modal-content"]}
@@ -375,12 +425,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
               </button>
               <button
                 className={styles["active-action-confirmation-modal-no-button"]}
-                onClick={() => {
-                  setActiveAction(null);
-                  setActiveCell(null);
-                  removeAllCellsSpecialProps();
-                  addPlayerLegalCellsProps();
-                }}
+                onClick={escapeActiveActionHandler}
               >
                 No
               </button>
@@ -418,7 +463,16 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
           </div>
         </div>
       )}
+
       <div className={styles["konane-board-container"]}>
+        {activeCell && (
+          <button
+            className={styles["escape-active-cell-button"]}
+            onClick={escapeActiveCellHandler}
+          >
+            <div className={styles["escape-active-cell-button-arrow"]}></div>
+          </button>
+        )}
         {emptyBoard.map((row, rowN) => (
           <div className={styles["konane-board-row"]} key={`row${rowN}`}>
             {row.map((_, colN) => (
@@ -431,7 +485,18 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
                 value={`${rowN}-${colN}`}
                 ref={(el) => (boardRef.current[rowN][colN] = el)}
                 tabIndex={-1}
-              ></button>
+              >
+                {gameRef.current &&
+                  cellIsChecker(gameRef.current.board[rowN][colN]) && (
+                    <div
+                      className={
+                        gameRef.current.board[rowN][colN] === "X"
+                          ? "checker-black"
+                          : "checker-white"
+                      }
+                    ></div>
+                  )}
+              </button>
             ))}
           </div>
         ))}
