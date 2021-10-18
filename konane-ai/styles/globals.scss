@@ -1,3 +1,5 @@
+@use "sass:math";
+
 html,
 body {
   padding: 0;
@@ -25,17 +27,7 @@ a {
   --black: black;
   --white: #faebd7;
   --checker-diameter: 75%;
-}
-
-// https://stackoverflow.com/a/52963366
-@keyframes border-dance {
-  0% {
-    background-position: left top, right bottom, left bottom, right top;
-  }
-  100% {
-    background-position: left 200px top, right 200px bottom, left bottom 200px,
-      right top 200px;
-  }
+  --confetti-amount: 10;
 }
 
 // https://stackoverflow.com/a/52963366
@@ -60,6 +52,17 @@ a {
       $border-width 15px;
     background-position: left top, right bottom, left bottom, right top;
     animation: border-dance 4s infinite linear;
+  }
+
+  // https://stackoverflow.com/a/52963366
+  @keyframes border-dance {
+    0% {
+      background-position: left top, right bottom, left bottom, right top;
+    }
+    100% {
+      background-position: left 200px top, right 200px bottom, left bottom 200px,
+        right top 200px;
+    }
   }
 }
 
@@ -127,4 +130,59 @@ a {
 }
 .checker-white {
   @include circle(var(--white), var(--checker-diameter));
+}
+
+@mixin confetti($n, $times) {
+  z-index: 20;
+  width: 15px;
+  height: 15px;
+  background-color: #f2d74e;
+  position: absolute;
+  left: 50%;
+  animation: confetti 5s ease-in-out -2s $times;
+  transform-origin: left top;
+  @for $i from 1 to $n {
+    &:nth-child(#{$i}) {
+      @if $i % 3 == 0 {
+        background: #ff9a91;
+      } @else if $i % 3 == 1 {
+        background: #f2d74e;
+      } @else {
+        background: #95c3de;
+      }
+      left: calc(100% / $n * $i);
+      animation-delay: #{calc((-1 * random(61) - 1) / 10)}s;
+    }
+  }
+  &-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden !important;
+  }
+
+  @keyframes confetti {
+    0% {
+      transform: rotateZ(15deg) rotateY(0deg) translate(0, 0);
+    }
+    25% {
+      transform: rotateZ(5deg) rotateY(360deg) translate(-5vw, 20vh);
+    }
+    50% {
+      transform: rotateZ(15deg) rotateY(720deg) translate(5vw, 60vh);
+    }
+    75% {
+      transform: rotateZ(5deg) rotateY(1080deg) translate(-10vw, 80vh);
+    }
+    100% {
+      transform: rotateZ(15deg) rotateY(1440deg)
+        translate(10vw, calc(100vh - 15px));
+    }
+  }
+}
+
+.confetti {
+  @include confetti(10, infinite);
 }

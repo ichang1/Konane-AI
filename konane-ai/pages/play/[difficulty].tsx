@@ -65,6 +65,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
     const handler = () => {
       setActiveCell(cell);
       removeAllCellsSpecialProps();
+      cellElement.classList.add("cell-border-secondary");
       playerLegalMoves.forEach((checkerMove) => {
         const {
           to: [toRow, toCol],
@@ -239,25 +240,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
     setActiveCell(null);
     removeAllCellsSpecialProps();
     addPlayerCellsSpecialProps();
-    console.log("escaped active cell");
   };
-
-  useEffect(() => {
-    console.log(activeCell);
-  }, [activeCell]);
-
-  // useEffect(() => {
-  //   const escapeActiveCellListener = (e: KeyboardEvent) => {
-  //     console.log("escape cell listener", e.key, activeCell, !!activeCell);
-  //     if (e.key === "Escape" && activeCell !== null) {
-  //       escapeActiveCellHandler();
-  //     }
-  //   };
-  //   window.addEventListener("keydown", escapeActiveCellListener);
-  //   return () => {
-  //     window.removeEventListener("keydown", escapeActiveCellListener);
-  //   };
-  // }, []);
 
   useEffect(() => {
     if (human) {
@@ -469,6 +452,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
           <button
             className={styles["escape-active-cell-button"]}
             onClick={escapeActiveCellHandler}
+            disabled={activeAction ? true : false}
           >
             <div className={styles["escape-active-cell-button-arrow"]}></div>
           </button>
@@ -501,6 +485,13 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
           </div>
         ))}
       </div>
+      {humanWins && (
+        <div className="confetti-container">
+          {[...Array(30)].map((_, idx) => (
+            <div className="confetti" key={`confetti-${idx}`}></div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

@@ -15,18 +15,17 @@
     border: var(--board-border-width) solid black;
     width: max-content;
     height: max-content;
-    margin: 2em;
+    margin: 0;
     margin-bottom: 2em;
     bottom: 2em;
     position: relative;
     @media only screen and (max-width: 500px) {
-      top: 75px;
       left: 0;
       margin: 0;
       padding: 0;
       transform: none;
     }
-    @media only screen and (max-height: 650px) {
+    @media only screen and (max-height: 500px) {
       top: 2em;
       bottom: 0;
     }
@@ -67,6 +66,7 @@
   display: flex;
   justify-content: space-around;
   align-items: center;
+  margin: 0;
   &-human,
   &-computer {
     height: inherit;
