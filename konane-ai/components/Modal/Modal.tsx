@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styles from "../../styles/components/Modal/Modal.module.scss";
 
 interface ModalProps {
@@ -18,6 +18,7 @@ const PageModal: React.FC<ModalProps> = ({
   full,
 }) => {
   const [open, setOpen] = useState(true);
+
   const handleClose = () => {
     // clicked close button
     setOpen(false);

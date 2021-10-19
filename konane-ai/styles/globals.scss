@@ -21,9 +21,11 @@ a {
   --button-border-radius: 1em;
   --board-border-width: 1em;
   --cell-size: min(50px, 100vw / 8 - 2 * var(--board-border-width) / 8);
-  --active-cell-border-width: 5px;
-  --move-cell-color: green;
-  --remove-cell-color: red;
+  --active-cell-border-width: 6px;
+  --black-move-cell-color: darkgreen;
+  --black-remove-cell-color: darkred;
+  --white-move-cell-color: limegreen;
+  --white-remove-cell-color: red;
   --black: black;
   --white: #faebd7;
   --checker-diameter: 75%;
@@ -67,18 +69,34 @@ a {
 }
 
 .rotating-cell-border {
-  &-primary {
+  &-black-primary {
     @include rotating-border(
       var(--active-cell-border-width),
-      var(--remove-cell-color),
+      var(--black-remove-cell-color),
       var(--cell-size),
       var(--cell-size)
     );
   }
-  &-secondary {
+  &-black-secondary {
     @include rotating-border(
       var(--active-cell-border-width),
-      var(--move-cell-color),
+      var(--black-move-cell-color),
+      var(--cell-size),
+      var(--cell-size)
+    );
+  }
+  &-white-primary {
+    @include rotating-border(
+      var(--active-cell-border-width),
+      var(--white-remove-cell-color),
+      var(--cell-size),
+      var(--cell-size)
+    );
+  }
+  &-white-secondary {
+    @include rotating-border(
+      var(--active-cell-border-width),
+      var(--white-move-cell-color),
       var(--cell-size),
       var(--cell-size)
     );
@@ -100,18 +118,34 @@ a {
 }
 
 .cell-border {
-  &-primary {
+  &-black-primary {
     @include border(
       var(--active-cell-border-width),
-      var(--remove-cell-color),
+      var(--black-remove-cell-color),
       var(--cell-size),
       var(--cell-size)
     );
   }
-  &-secondary {
+  &-white-primary {
     @include border(
       var(--active-cell-border-width),
-      var(--move-cell-color),
+      var(--white-remove-cell-color),
+      var(--cell-size),
+      var(--cell-size)
+    );
+  }
+  &-black-secondary {
+    @include border(
+      var(--active-cell-border-width),
+      var(--black-move-cell-color),
+      var(--cell-size),
+      var(--cell-size)
+    );
+  }
+  &-white-secondary {
+    @include border(
+      var(--active-cell-border-width),
+      var(--white-move-cell-color),
       var(--cell-size),
       var(--cell-size)
     );

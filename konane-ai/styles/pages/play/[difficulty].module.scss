@@ -35,7 +35,8 @@
     justify-content: center;
     &:nth-child(1) {
       .konane-board-cell {
-        &::before {
+        // need to use after b/c the animating border classes use before
+        &::after {
           z-index: 20;
           content: attr(data-col);
           height: max-content;
@@ -275,7 +276,7 @@
       z-index: 10;
       content: "You Win!";
       position: absolute;
-      color: darkbrown;
+      color: brown;
       text-align: center;
       vertical-align: middle;
       line-height: 100vh;
