@@ -99,5 +99,5 @@ export const stringIsPlayer = (s: string): s is Player => {
 
 export const verboseCellPosition = (pos: [number, number]) => {
   const [row, col] = pos;
-  return [col + 1, 8 - row];
+  return [row + 1, col + 1];
 };

@@ -509,7 +509,11 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
           </button>
         )}
         {emptyBoard.map((row, rowN) => (
-          <div className={styles["konane-board-row"]} key={`row${rowN}`}>
+          <div
+            className={styles["konane-board-row"]}
+            key={`row${rowN}`}
+            data-row={`${rowN + 1}`}
+          >
             {row.map((_, colN) => (
               <button
                 className={styles["konane-board-cell"]}
@@ -520,6 +524,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
                 value={`${rowN}-${colN}`}
                 ref={(el) => (boardRef.current[rowN][colN] = el)}
                 tabIndex={-1}
+                data-col={`${colN + 1}`}
               >
                 {gameRef.current &&
                   cellIsChecker(gameRef.current.board[rowN][colN]) && (
