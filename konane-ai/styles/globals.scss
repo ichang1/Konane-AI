@@ -150,7 +150,7 @@ a {
       } @else {
         background: #95c3de;
       }
-      left: calc(100% / $n * $i);
+      left: random(100) + 0%;
       animation-delay: #{calc((-1 * random(61) - 1) / 10)}s;
     }
   }
@@ -184,5 +184,5 @@ a {
 }
 
 .confetti {
-  @include confetti(10, infinite);
+  @include confetti(75, infinite);
 }

@@ -6,7 +6,7 @@
   width: max-content;
   position: absolute;
   z-index: $sidebar-z-index;
-  transform: translateX(calc(-100% + $arrow-size / 2));
+  transform: translateX(calc(-100% + $arrow-size));
   transition: all 1s ease-in-out;
   background: lightgray;
   top: 0;

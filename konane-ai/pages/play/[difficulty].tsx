@@ -538,7 +538,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
       </div>
       {humanWins && (
         <div className="confetti-container">
-          {[...Array(30)].map((_, idx) => (
+          {[...Array(75)].map((_, idx) => (
             <div className="confetti" key={`confetti-${idx}`}></div>
           ))}
         </div>
