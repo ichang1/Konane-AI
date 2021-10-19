@@ -1,0 +1,42 @@
+.sidebar {
+  $sidebar-z-index: 100;
+  $arrow-self-offset: 15%;
+  $arrow-size: 0.8em;
+  height: 100%;
+  width: max-content;
+  position: absolute;
+  z-index: $sidebar-z-index;
+  transform: translateX(calc(-100% + $arrow-size / 2));
+  transition: all 1s ease-in-out;
+  background: lightgray;
+  top: 0;
+  left: 0;
+  padding: 1em 2em;
+  margin: 0;
+  & > *:not(:last-child) {
+    margin-bottom: 1em;
+  }
+  &::after {
+    top: 5%;
+    left: 100%;
+    transform: translateX(-1 * $arrow-self-offset);
+    position: absolute;
+    z-index: calc($sidebar-z-index + 5);
+    content: "";
+    height: 0;
+    width: 0;
+    background: transparent;
+    /* the arrow */
+    border-left: $arrow-size solid black;
+    border-top: $arrow-size solid transparent;
+    border-bottom: $arrow-size solid transparent;
+    border-right: $arrow-size solid transparent;
+  }
+  &:hover {
+    transform: translateX(0%);
+    &::after {
+      transform: rotateY(180deg)
+        translatex(calc(2 * $arrow-size - $arrow-self-offset));
+    }
+  }
+}

@@ -67,7 +67,7 @@ const PageModal: React.FC<ModalProps> = ({
   // is open and not full page
   return (
     <div
-      className={`${styles["modal"]}${className ? " " + className : ""}`}
+      className={`${styles["modal"]} ${className ? className : ""}`.trim()}
       style={customStyles}
     >
       {closable && (

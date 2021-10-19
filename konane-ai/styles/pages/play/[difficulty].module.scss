@@ -188,6 +188,7 @@
     border-top-right-radius: 1em;
     border-bottom-right-radius: 1em;
     &::before {
+      $arrow-size: 0.6em;
       position: absolute;
       z-index: 5;
       content: "";
@@ -197,10 +198,42 @@
       width: 0;
       background: transparent;
       /* the arrow */
-      border-left: 0.6em solid transparent;
-      border-top: 0.6em solid transparent;
-      border-bottom: 0.6em solid transparent;
-      border-right: 0.6em solid black;
+      border-left: $arrow-size solid transparent;
+      border-top: $arrow-size solid transparent;
+      border-bottom: $arrow-size solid transparent;
+      border-right: $arrow-size solid black;
+    }
+  }
+}
+
+.game-history {
+  padding: 0.5em;
+  overflow-y: scroll;
+  height: 15em;
+  border: 1px solid black;
+  white-space: pre-line;
+  &-container {
+  }
+  &-wrapper {
+    display: flex;
+    flex-direction: column-reverse;
+  }
+  &-title {
+    text-align: center;
+    margin-bottom: 0;
+  }
+}
+
+.sidebar {
+  &-difficulty-buttons-container {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+  }
+  &-difficulty-button {
+    padding: 0.5em;
+    &:not(:last-child) {
+      margin-bottom: 0.5em;
     }
   }
 }

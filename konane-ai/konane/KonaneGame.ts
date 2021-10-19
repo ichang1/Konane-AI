@@ -40,6 +40,10 @@ export default class KonaneGame {
     else return WHITE;
   }
 
+  get turn() {
+    return this.konane.turn;
+  }
+
   getLegalHumanActions() {
     if (this.human === BLACK) {
       return this.konane.getBlackLegalActions();
