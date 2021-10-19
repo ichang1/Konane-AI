@@ -1,31 +1,3 @@
-// type MinMaxNodeType = "min" | "max";
-
-// class MinMaxNode {
-//   state: any;
-//   action: any;
-//   type: MinMaxNodeType;
-//   parent: MinMaxNode;
-//   constructor(
-//     state: any,
-//     action: any,
-//     type: MinMaxNodeType,
-//     parent: MinMaxNode
-//   ) {
-//     this.state = state;
-//     this.action = action;
-//     this.type = type;
-//     this.parent = parent;
-//   }
-
-//   get path() {
-//     return 0;
-//   }
-
-//   bubble() {
-//     return;
-//   }
-// }
-
 class PriorityQueueNode<T> {
   element: T | null;
   priority: number;

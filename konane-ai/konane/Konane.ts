@@ -38,13 +38,13 @@ export default class Konane {
     if (!playerLegalActions) return [];
     const playerLegalActionsFlat: Action[] =
       Object.values(playerLegalActions).flat(1);
-    const successors: Konane[] = [];
+    const successors: [Konane, Action][] = [];
     playerLegalActionsFlat.forEach((action) => {
       const successorBoard = this.getSuccesorBoard(action);
       const succ = new Konane();
       succ.turn = this.turn + 1;
       succ.board = successorBoard;
-      successors.push(succ);
+      successors.push([succ, action]);
     });
     return successors;
   }

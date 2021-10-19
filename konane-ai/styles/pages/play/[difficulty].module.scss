@@ -34,14 +34,16 @@
     display: flex;
     justify-content: center;
     &:nth-child(1) {
-      .konane-board-cell::before {
-        z-index: 20;
-        content: attr(data-col);
-        height: max-content;
-        width: max-content;
-        position: absolute;
-        transform: translateY(calc(-0.5 * var(--cell-size) - 2em));
-        font-size: 1.25em;
+      .konane-board-cell {
+        &::before {
+          z-index: 20;
+          content: attr(data-col);
+          height: max-content;
+          width: max-content;
+          position: absolute;
+          transform: translateY(calc(-0.5 * var(--cell-size) - 2em));
+          font-size: 1.25em;
+        }
       }
     }
     &::before {
@@ -139,6 +141,7 @@
   }
   &-white-button,
   &-black-button {
+    font-size: 1.5em;
     border-radius: 50%;
     width: 100px;
     height: 100px;
@@ -188,14 +191,21 @@
 }
 
 .escape-active-cell-button {
-  position: absolute;
+  z-index: 100;
+  grid-row: 2;
+  grid-column: 2/3;
+  position: relative;
   border: none;
-  right: 0;
-  top: calc(-1 * var(--cell-size));
+  top: -52.5%;
+  right: calc(-1 * var(--cell-size) * 4 - 1em);
   height: 2em;
   width: 2em;
   padding: 0;
   background: none;
+  @media only screen and (max-height: 700px) {
+    top: calc(-1 * var(--cell-size) * 4);
+    bottom: 0;
+  }
   &:hover {
     cursor: pointer;
   }

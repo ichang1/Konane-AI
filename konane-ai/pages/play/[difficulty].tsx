@@ -271,6 +271,12 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   };
 
   useEffect(() => {
+    const history = historyRef.current;
+    if (!history) return;
+    history.innerHTML = "";
+  }, []);
+
+  useEffect(() => {
     if (human) {
       // once user chooses to play as white or black, set up the game
       gameRef.current = new KonaneGame(
@@ -359,14 +365,12 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
             </button>
           ))}
         </div>
-        {human && (
-          <div className={styles["game-history-container"]}>
-            <div className={styles["game-history-title"]}>History</div>
-            <div className={styles["game-history-wrapper"]}>
-              <div className={styles["game-history"]} ref={historyRef}></div>
-            </div>
+        <div className={styles["game-history-container"]}>
+          <div className={styles["game-history-title"]}>History</div>
+          <div className={styles["game-history-wrapper"]}>
+            <div className={styles["game-history"]} ref={historyRef}></div>
           </div>
-        )}
+        </div>
       </SideBar>
       {!human && (
         <Modal className={"set-player-modal"} full={true}>
@@ -497,17 +501,16 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
           </div>
         </div>
       )}
-
+      {activeCell && (
+        <button
+          className={styles["escape-active-cell-button"]}
+          onClick={escapeActiveCellHandler}
+          disabled={activeAction ? true : false}
+        >
+          <div className={styles["escape-active-cell-button-arrow"]}></div>
+        </button>
+      )}
       <div className={styles["konane-board-container"]}>
-        {activeCell && (
-          <button
-            className={styles["escape-active-cell-button"]}
-            onClick={escapeActiveCellHandler}
-            disabled={activeAction ? true : false}
-          >
-            <div className={styles["escape-active-cell-button-arrow"]}></div>
-          </button>
-        )}
         {emptyBoard.map((row, rowN) => (
           <div
             className={styles["konane-board-row"]}
