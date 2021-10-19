@@ -537,7 +537,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
         ))}
       </div>
       {humanWins && (
-        <div className="confetti-container">
+        <div className={`confetti-container ${styles["confetti-wrapper"]}`}>
           {[...Array(75)].map((_, idx) => (
             <div className="confetti" key={`confetti-${idx}`}></div>
           ))}

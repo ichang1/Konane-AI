@@ -133,7 +133,7 @@ a {
 }
 
 @mixin confetti($n, $times) {
-  z-index: 20;
+  z-index: 100;
   width: 15px;
   height: 15px;
   background-color: #f2d74e;
