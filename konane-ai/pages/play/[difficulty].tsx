@@ -428,8 +428,8 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
             </button>
           ))}
         </div>
+        <div className={styles["game-history-title"]}>History</div>
         <div className={styles["game-history-container"]}>
-          <div className={styles["game-history-title"]}>History</div>
           <div className={styles["game-history-wrapper"]}>
             <div className={styles["game-history"]} ref={historyRef}></div>
           </div>
@@ -623,9 +623,16 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
         ))}
       </div>
       {humanWins && (
-        <div className={`confetti-container ${styles["confetti-wrapper"]}`}>
+        <div className={`confetti-container ${styles["win-screen"]}`}>
           {[...Array(75)].map((_, idx) => (
             <div className="confetti" key={`confetti-${idx}`}></div>
+          ))}
+        </div>
+      )}
+      {humanWins === false && (
+        <div className={`rainfall ${styles["lose-screen"]}`}>
+          {[...Array(75)].map((_, idx) => (
+            <div className="rainfall" key={`rain-${idx}`}></div>
           ))}
         </div>
       )}

@@ -167,7 +167,7 @@ a {
 }
 
 @mixin confetti($n, $times) {
-  z-index: 100;
+  z-index: 200;
   width: 15px;
   height: 15px;
   background-color: #f2d74e;
@@ -219,4 +219,63 @@ a {
 
 .confetti {
   @include confetti(75, infinite);
+}
+
+@mixin rainfall($n, $times) {
+  z-index: 200;
+  width: 2px;
+  height: 25px;
+  background-color: darkblue;
+  position: absolute;
+  left: 50%;
+  animation: rainfall 1s ease-in-out $times;
+  transform-origin: left top;
+  @for $i from 1 to $n {
+    &:nth-child(#{$i}) {
+      left: random(100) + 0%;
+      animation-delay: #{calc((-1 * random(61) - 1) / 10)}s;
+    }
+  }
+  &-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden !important;
+  }
+
+  @keyframes rainfall {
+    0% {
+      transform: translate(0, 0);
+    }
+    12% {
+      transform: translate(2vw, 12vh);
+    }
+    25% {
+      transform: translate(3vw, 24vh);
+    }
+    37% {
+      transform: translate(5vw, 36vh);
+    }
+    50% {
+      transform: translate(6vw, 48vh);
+    }
+    62% {
+      transform: translate(7vw, 60vh);
+    }
+    75% {
+      transform: translate(8vw, 72vh);
+    }
+    87% {
+      transform: translate(9vw, 84vh);
+    }
+    100% {
+      transform: translate(10vw, calc(100vh - 8px));
+    }
+  }
+}
+
+.rainfall {
+  @include rainfall(75, infinite);
 }
