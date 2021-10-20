@@ -1,3 +1,4 @@
+import { MinMaxNode } from "../utils/MinMax";
 import { randInt } from "../utils/misc";
 import Konane from "./Konane";
 import {
@@ -56,11 +57,16 @@ export default class KonaneGame {
     switch (this.difficulty) {
       case konaneDifficulties.novice:
         const legalActions = this.getLegalComputerActions();
-        if (!legalActions) return null;
         const legalActionsFlat = Object.values(legalActions).flat(1);
+        if (legalActionsFlat.length === 0) return null;
         const randIdx = randInt(0, legalActionsFlat.length - 1);
         return legalActionsFlat[randIdx];
       case konaneDifficulties.easy:
+        // const node = new MinMaxNode<Cell[][], Action>(
+        //   this.board,
+        //   this.konane.getSuccessors,
+
+        // )
         return null;
       case konaneDifficulties.medium:
         return null;

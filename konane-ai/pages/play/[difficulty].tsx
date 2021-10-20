@@ -196,7 +196,6 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
     if (!gameRef.current) return;
     const game = gameRef.current;
     const playerLegalActions = game.getLegalHumanActions();
-    if (!playerLegalActions) return;
     Object.entries(playerLegalActions).forEach(
       ([cellString, actionsFromCell]) => {
         const [row, col] = cellString.split(",").map((n) => parseInt(n));
@@ -368,7 +367,6 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
     if (playerToPlay === human) {
       // human's turn
       const playerLegalActions = game.getLegalHumanActions();
-      if (!playerLegalActions) return;
       if (Object.keys(playerLegalActions).length === 0) {
         // human has no moves left, human loses
         setHumanWins(false);

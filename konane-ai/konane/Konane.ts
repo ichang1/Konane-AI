@@ -122,8 +122,7 @@ export default class Konane {
    * Gets all legal actions for black
    * @returns all legal actions for black or null if not black's turn
    */
-  getBlackLegalActions(): { [key: string]: Action[] } | null {
-    if (this.turn % 2 !== 0) return null;
+  getBlackLegalActions(): { [key: string]: Action[] } {
     if (this.turn === 0) {
       // remove black checker
       return this.getLegalRemoves(BLACK);
@@ -136,8 +135,7 @@ export default class Konane {
    * Gets all legal actions for white
    * @returns all legal actions for white nor null if not white's turn
    */
-  getWhiteLegalActions(): { [key: string]: Action[] } | null {
-    if (this.turn % 2 !== 1) return null;
+  getWhiteLegalActions(): { [key: string]: Action[] } {
     if (this.turn === 1) {
       // remove white checker adjacent to initial removed black checker
       // there should be 1 empty cell on the board
