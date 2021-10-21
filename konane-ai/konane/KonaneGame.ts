@@ -1,4 +1,4 @@
-import { MinMaxNode } from "../utils/MinMax";
+import { minMax, MinMaxNode } from "../utils/MinMax";
 import { randInt } from "../utils/misc";
 import Konane from "./Konane";
 import {
@@ -6,22 +6,20 @@ import {
   Action,
   BLACK,
   WHITE,
-  Cell,
-  EMPTY,
-  BLACK_CHECKER,
-  WHITE_CHECKER,
-  actionIsMoveChecker,
-  actionIsRemoveChecker,
-  RemoveChecker,
-  MoveChecker,
-  KonaneGameState,
   ComputerDifficulty,
   konaneDifficulties,
 } from "./KonaneUtils";
 
+const computerDifficultyDepths: { [key: string]: number } = {
+  easy: 2,
+  medium: 4,
+  hard: 6,
+  challenger: 8,
+  grandmaster: 10,
+};
 export default class KonaneGame {
-  human: Player;
-  computer: Player;
+  human: Player = WHITE;
+  computer: Player = BLACK;
   difficulty: ComputerDifficulty;
   private konane: Konane;
   constructor(human: Player, difficulty: ComputerDifficulty) {
@@ -62,20 +60,70 @@ export default class KonaneGame {
         const randIdx = randInt(0, legalActionsFlat.length - 1);
         return legalActionsFlat[randIdx];
       case konaneDifficulties.easy:
-        // const node = new MinMaxNode<Cell[][], Action>(
-        //   this.board,
-        //   this.konane.getSuccessors,
-
-        // )
-        return null;
+        const easyNode = new MinMaxNode<Konane, Action | null>(
+          this.konane,
+          (k: Konane) => k.getSuccessors(),
+          "max",
+          0,
+          null
+        );
+        return minMax(
+          easyNode,
+          computerDifficultyDepths.easy,
+          getKonaneStaticEval(this.computer)
+        );
       case konaneDifficulties.medium:
-        return null;
+        const mediumNode = new MinMaxNode<Konane, Action | null>(
+          this.konane,
+          (k: Konane) => k.getSuccessors(),
+          "max",
+          0,
+          null
+        );
+        return minMax(
+          mediumNode,
+          computerDifficultyDepths.medium,
+          getKonaneStaticEval(this.computer)
+        );
       case konaneDifficulties.hard:
-        return null;
+        const hardNode = new MinMaxNode<Konane, Action | null>(
+          this.konane,
+          (k: Konane) => k.getSuccessors(),
+          "max",
+          0,
+          null
+        );
+        return minMax(
+          hardNode,
+          computerDifficultyDepths.hard,
+          getKonaneStaticEval(this.computer)
+        );
       case konaneDifficulties.challenger:
-        return null;
+        const challengerNode = new MinMaxNode<Konane, Action | null>(
+          this.konane,
+          (k: Konane) => k.getSuccessors(),
+          "max",
+          0,
+          null
+        );
+        return minMax(
+          challengerNode,
+          computerDifficultyDepths.challenger,
+          getKonaneStaticEval(this.computer)
+        );
       case konaneDifficulties.grandmaster:
-        return null;
+        const grandmasterNode = new MinMaxNode<Konane, Action | null>(
+          this.konane,
+          (k: Konane) => k.getSuccessors(),
+          "max",
+          0,
+          null
+        );
+        return minMax(
+          grandmasterNode,
+          computerDifficultyDepths.grandmaster,
+          getKonaneStaticEval(this.computer)
+        );
       default:
         return null;
     }
@@ -93,3 +141,23 @@ export default class KonaneGame {
     this.konane.applyAction(action);
   }
 }
+
+/**
+ *
+ * @param computer type of player computer is playing as
+ * @returns arrow fn for gettin
+ */
+const getKonaneStaticEval = (computer: Player) => {
+  // number of black moves minus number of white moves
+  const evalFn = (state: Konane) => {
+    const blackLegalActionsMap = state.getBlackLegalActions();
+    const whiteLegalActionsMap = state.getWhiteLegalActions();
+    const numBlackLegalActions =
+      Object.values(blackLegalActionsMap).flat(1).length;
+    const numWhiteLegalActions =
+      Object.values(whiteLegalActionsMap).flat(1).length;
+    return numBlackLegalActions - numWhiteLegalActions;
+  };
+  if (computer === BLACK) return evalFn;
+  else return (state: Konane) => -evalFn(state);
+};

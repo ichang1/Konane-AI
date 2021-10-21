@@ -120,7 +120,7 @@ export default class Konane {
 
   /**
    * Gets all legal actions for black
-   * @returns all legal actions for black or null if not black's turn
+   * @returns all legal actions for black
    */
   getBlackLegalActions(): { [key: string]: Action[] } {
     if (this.turn === 0) {
@@ -133,7 +133,7 @@ export default class Konane {
 
   /**
    * Gets all legal actions for white
-   * @returns all legal actions for white nor null if not white's turn
+   * @returns all legal actions for white
    */
   getWhiteLegalActions(): { [key: string]: Action[] } {
     if (this.turn === 1) {

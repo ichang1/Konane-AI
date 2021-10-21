@@ -420,7 +420,11 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
               className={styles["sidebar-difficulty-button"]}
               key={idx}
             >
-              <a key={idx} href={`/play/${diff}`}>
+              <a
+                key={idx}
+                href={`/play/${diff}`}
+                className={styles["sidebar-difficulty-button-link"]}
+              >
                 {diff.toUpperCase()}
               </a>
             </button>
@@ -628,7 +632,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
         </div>
       )}
       {humanWins === false && (
-        <div className={`rainfall ${styles["lose-screen"]}`}>
+        <div className={`rainfall-container ${styles["lose-screen"]}`}>
           {[...Array(75)].map((_, idx) => (
             <div className="rainfall" key={`rain-${idx}`}></div>
           ))}

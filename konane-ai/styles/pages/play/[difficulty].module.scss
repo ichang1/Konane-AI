@@ -239,13 +239,14 @@
 .game-history {
   padding: 0.5em;
   height: 15em;
+  width: 100%;
   border: 1px solid black;
   white-space: pre-line;
   &-wrapper {
+    height: 15em;
     display: flex;
-    min-height: min-content;
-    align-items: flex-start;
-    flex-direction: column;
+    overflow-y: scroll;
+    flex-direction: column-reverse;
   }
   &-title {
     text-align: center;
@@ -254,7 +255,6 @@
   &-container {
     height: 15em;
     display: flex;
-    overflow-y: scroll;
     flex-direction: column-reverse;
   }
 }
@@ -266,7 +266,14 @@
     flex-direction: column;
   }
   &-difficulty-button {
-    padding: 0.5em;
+    padding: 0;
+    width: 10em;
+    &-link {
+      display: block;
+      height: 100%;
+      width: 100%;
+      padding: 0.5em;
+    }
     &:not(:last-child) {
       margin-bottom: 0.5em;
     }
@@ -293,14 +300,14 @@
 
 .lose-screen {
   &::after {
-    display: inline;
+    display: absolute;
     height: 100%;
     width: 100%;
     font-size: 10em;
     z-index: 100;
     content: "You Lose!";
     position: absolute;
-    color: #a2006d;
+    color: darkblue;
     text-align: center;
     vertical-align: middle;
     line-height: 100vh;

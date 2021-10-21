@@ -18,15 +18,22 @@ export const oppositeMinMaxNodeType = (
 export class MinMaxNode<T, V> {
   // state is of type T
   // action to get to a state is of type V
+
+  // game state
   state: T;
+  // function to get successor states
   private getStateSuccessors: (state: T) => [T, V][];
+  // min/max
   type: MinMaxNodeType;
+  // depth of node
   depth: number;
+  // move to get to this.state
   move: V;
+  // alpha beta values
   alpha: number;
   beta: number;
   constructor(
-    state: any,
+    state: T,
     getStateSuccessors: (state: T) => [T, V][],
     type: MinMaxNodeType,
     depth: number,
@@ -60,10 +67,10 @@ export class MinMaxNode<T, V> {
   }
 }
 
-const minMax = <T, V>(
+export const minMax = <T, V>(
   node: MinMaxNode<T, V>,
   maxDepth: number,
-  staticEvalFn: (node: MinMaxNode<T, V>) => number
+  staticEvalFn: (nodeState: T) => number
 ): V => {
   /**
    *
@@ -74,7 +81,7 @@ const minMax = <T, V>(
     const { depth, move } = node;
     const nodeSuccessors = node.getSuccessors();
     if (depth > maxDepth || nodeSuccessors.length === 0) {
-      return [staticEvalFn(node), move];
+      return [staticEvalFn(node.state), move];
     }
     const bestMoveDetails = nodeSuccessors.reduce<[number, V]>(
       (curBest, succNode) => {
@@ -98,3 +105,5 @@ const minMax = <T, V>(
   const [bestSuccStateValue, bestMove] = minMaxRec(node);
   return bestMove;
 };
+
+export const minMaxAlphaBeta = () => {};
