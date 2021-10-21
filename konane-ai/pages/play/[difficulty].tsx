@@ -26,7 +26,7 @@ const emptyBoard = [...Array(n)].map((_) => [...Array(n)]);
 
 const xCellColor = "#ab4e52";
 const oCellColor = "#703642";
-const ANIMATION_SPEED = 1250;
+const ANIMATION_SPEED = 1100;
 
 interface PlayKonaneProps {
   difficulty: string;
