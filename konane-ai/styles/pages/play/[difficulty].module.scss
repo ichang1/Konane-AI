@@ -242,10 +242,10 @@
   width: 100%;
   border: 1px solid black;
   white-space: pre-line;
+  overflow-y: scroll;
   &-wrapper {
     height: 15em;
     display: flex;
-    overflow-y: scroll;
     flex-direction: column-reverse;
   }
   &-title {

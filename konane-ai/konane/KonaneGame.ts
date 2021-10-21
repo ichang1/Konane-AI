@@ -1,4 +1,4 @@
-import { minMax, MinMaxNode } from "../utils/MinMax";
+import { minMax, minMaxAlphaBeta, MinMaxNode } from "../utils/MinMax";
 import { randInt } from "../utils/misc";
 import Konane from "./Konane";
 import {
@@ -67,7 +67,7 @@ export default class KonaneGame {
           0,
           null
         );
-        return minMax(
+        return minMaxAlphaBeta(
           easyNode,
           computerDifficultyDepths.easy,
           getKonaneStaticEval(this.computer)
@@ -80,7 +80,7 @@ export default class KonaneGame {
           0,
           null
         );
-        return minMax(
+        return minMaxAlphaBeta(
           mediumNode,
           computerDifficultyDepths.medium,
           getKonaneStaticEval(this.computer)
@@ -93,7 +93,7 @@ export default class KonaneGame {
           0,
           null
         );
-        return minMax(
+        return minMaxAlphaBeta(
           hardNode,
           computerDifficultyDepths.hard,
           getKonaneStaticEval(this.computer)
@@ -106,7 +106,7 @@ export default class KonaneGame {
           0,
           null
         );
-        return minMax(
+        return minMaxAlphaBeta(
           challengerNode,
           computerDifficultyDepths.challenger,
           getKonaneStaticEval(this.computer)
@@ -119,7 +119,7 @@ export default class KonaneGame {
           0,
           null
         );
-        return minMax(
+        return minMaxAlphaBeta(
           grandmasterNode,
           computerDifficultyDepths.grandmaster,
           getKonaneStaticEval(this.computer)

@@ -173,7 +173,7 @@ a {
   background-color: #f2d74e;
   position: absolute;
   left: 50%;
-  animation: confetti 5s ease-in-out -2s $times;
+  animation: confetti 2.5s ease-in-out -1s $times;
   transform-origin: left top;
   @for $i from 1 to $n {
     &:nth-child(#{$i}) {
@@ -184,7 +184,7 @@ a {
       } @else {
         background: #95c3de;
       }
-      left: random(100) + 0%;
+      left: random(50) + random(50) + 0%;
       animation-delay: #{calc((-1 * random(61) - 1) / 10)}s;
     }
   }
@@ -201,18 +201,30 @@ a {
     0% {
       transform: rotateZ(15deg) rotateY(0deg) translate(0, 0);
     }
+    12% {
+      transform: rotateZ(5deg) rotateY(180deg) translate(-2vw, 12vh);
+    }
     25% {
-      transform: rotateZ(5deg) rotateY(360deg) translate(-5vw, 20vh);
+      transform: rotateZ(15deg) rotateY(360deg) translate(2vw, 25vh);
+    }
+    37% {
+      transform: rotateZ(5deg) rotateY(540deg) translate(-2vw, 37vh);
     }
     50% {
-      transform: rotateZ(15deg) rotateY(720deg) translate(5vw, 60vh);
+      transform: rotateZ(15deg) rotateY(720deg) translate(2vw, 50vh);
+    }
+    62% {
+      transform: rotateZ(5deg) rotateY(900deg) translate(-2vw, 62vh);
     }
     75% {
-      transform: rotateZ(5deg) rotateY(1080deg) translate(-10vw, 80vh);
+      transform: rotateZ(15deg) rotateY(1080deg) translate(2vw, 75vh);
+    }
+    87% {
+      transform: rotateZ(5deg) rotateY(1260deg) translate(-2vw, 87vh);
     }
     100% {
       transform: rotateZ(15deg) rotateY(1440deg)
-        translate(10vw, calc(100vh - 15px));
+        translate(2vw, calc(100vh - 15px));
     }
   }
 }
