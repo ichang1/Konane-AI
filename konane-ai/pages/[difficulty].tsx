@@ -1,7 +1,7 @@
 import type { GetStaticPaths, GetStaticProps, NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
-import styles from "../../styles/pages/play/[difficulty].module.scss";
+import styles from "../styles/pages/[difficulty].module.scss";
 import {
   konaneDifficulties,
   Player,
@@ -15,11 +15,11 @@ import {
   verboseCellPosition,
   RemoveChecker,
   MoveChecker,
-} from "../../konane/KonaneUtils";
+} from "../konane/KonaneUtils";
 import { useEffect, useRef, useState } from "react";
-import Modal from "../../components/Modal/Modal";
-import SideBar from "../../components/SideBar/SideBar";
-import KonaneGame from "../../konane/KonaneGame";
+import Modal from "../components/Modal/Modal";
+import SideBar from "../components/SideBar/SideBar";
+import KonaneGame from "../konane/KonaneGame";
 
 const n = 8;
 const emptyBoard = [...Array(n)].map((_) => [...Array(n)]);
@@ -422,7 +422,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
             >
               <a
                 key={idx}
-                href={`/play/${diff}`}
+                href={`/${diff}`}
                 className={styles["sidebar-difficulty-button-link"]}
               >
                 {diff.toUpperCase()}

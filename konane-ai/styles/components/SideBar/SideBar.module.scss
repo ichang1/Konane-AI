@@ -39,4 +39,23 @@
         translatex(calc(2 * $arrow-size - $arrow-self-offset));
     }
   }
+  &-button {
+    border: none;
+    background: none;
+    color: green;
+    height: max-content;
+    width: max-content;
+    font-weight: bold;
+    &:hover {
+      &::before {
+        position: relative;
+        display: block;
+        left: 0%;
+        content: "";
+        height: 2px;
+        width: 100%;
+        background: green;
+      }
+    }
+  }
 }

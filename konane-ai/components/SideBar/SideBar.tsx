@@ -10,6 +10,18 @@ const SideBar: React.FC<SideBarProps> = ({ className, children }) => {
     <div
       className={`${styles["sidebar"]} ${className ? className : ""}`.trim()}
     >
+      <div>
+        <button className={styles["sidebar-button"]}>
+          <a href={"/"} className={styles["sidebar-button-home-link"]}>
+            Home
+          </a>
+        </button>
+        <button className={styles["sidebar-button"]}>
+          <a href={"/"} className={styles["sidebar-button-about-link"]}>
+            About
+          </a>
+        </button>
+      </div>
       {children}
     </div>
   );

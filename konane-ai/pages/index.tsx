@@ -21,7 +21,7 @@ const Home: NextPage = () => {
               className={styles["play-difficulty-level"]}
               key={idx}
             >
-              <a key={idx} href={`/play/${diff}`}>
+              <a key={idx} href={`/${diff}`}>
                 {diff.toUpperCase()}
               </a>
             </button>
