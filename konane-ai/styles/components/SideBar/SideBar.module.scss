@@ -46,16 +46,19 @@
     height: max-content;
     width: max-content;
     font-weight: bold;
-    &:hover {
-      &::before {
-        position: relative;
-        display: block;
-        left: 0%;
-        content: "";
-        height: 2px;
-        width: 100%;
-        background: green;
-      }
+    &::before {
+      transition: all 0.5s ease-in-out;
+      bottom: 3px;
+      position: relative;
+      display: block;
+      left: 0%;
+      content: "";
+      height: 2px;
+      width: 0%;
+      background: green;
+    }
+    &:hover::before {
+      width: 100%;
     }
   }
 }
