@@ -332,4 +332,9 @@ export default class Konane {
     }
     return positions;
   }
+
+  toString() {
+    const s = this.board.toString() + " " + this.turn;
+    return s;
+  }
 }

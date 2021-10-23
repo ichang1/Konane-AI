@@ -30,7 +30,7 @@ const roles = {
   ...Object.fromEntries(Object.entries(temp).map(([k, v]) => [v, k])),
 };
 console.log("here");
-const game = new KonaneGame(human, konaneDifficulties.easy);
+const game = new KonaneGame(human, konaneDifficulties.grandmaster);
 for (let i = 0; i < 100; i++) {
   const playerToPlay = game.playerToPlay;
   if (playerToPlay === human) {

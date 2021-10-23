@@ -1,4 +1,4 @@
-import { minMax, minMaxAlphaBeta, MinMaxNode } from "../utils/MinMax";
+import { minMax, MinMax, minMaxAlphaBeta, MinMaxNode } from "../utils/MinMax";
 import { randInt } from "../utils/misc";
 import Konane from "./Konane";
 import {
@@ -22,11 +22,14 @@ export default class KonaneGame {
   computer: Player = BLACK;
   difficulty: ComputerDifficulty;
   private konane: Konane;
+  private minMaxHandler: MinMax<Konane, Action | null>;
+
   constructor(human: Player, difficulty: ComputerDifficulty) {
     this.human = human;
     this.computer = human === WHITE ? BLACK : WHITE;
     this.difficulty = difficulty;
     this.konane = new Konane();
+    this.minMaxHandler = new MinMax();
   }
 
   get board() {
@@ -67,7 +70,7 @@ export default class KonaneGame {
           0,
           null
         );
-        return minMaxAlphaBeta(
+        return this.minMaxHandler.minMaxAlphaBeta(
           easyNode,
           computerDifficultyDepths.easy,
           getKonaneStaticEval(this.computer)
@@ -80,7 +83,7 @@ export default class KonaneGame {
           0,
           null
         );
-        return minMaxAlphaBeta(
+        return this.minMaxHandler.minMaxAlphaBeta(
           mediumNode,
           computerDifficultyDepths.medium,
           getKonaneStaticEval(this.computer)
@@ -93,7 +96,7 @@ export default class KonaneGame {
           0,
           null
         );
-        return minMaxAlphaBeta(
+        return this.minMaxHandler.minMaxAlphaBeta(
           hardNode,
           computerDifficultyDepths.hard,
           getKonaneStaticEval(this.computer)
@@ -106,7 +109,7 @@ export default class KonaneGame {
           0,
           null
         );
-        return minMaxAlphaBeta(
+        return this.minMaxHandler.minMaxAlphaBeta(
           challengerNode,
           computerDifficultyDepths.challenger,
           getKonaneStaticEval(this.computer)
@@ -119,7 +122,7 @@ export default class KonaneGame {
           0,
           null
         );
-        return minMaxAlphaBeta(
+        return this.minMaxHandler.minMaxAlphaBeta(
           grandmasterNode,
           computerDifficultyDepths.grandmaster,
           getKonaneStaticEval(this.computer)
@@ -149,15 +152,34 @@ export default class KonaneGame {
  */
 const getKonaneStaticEval = (computer: Player) => {
   // number of black moves minus number of white moves
-  const evalFn = (state: Konane) => {
+  const blackComputerEvalFn = (state: Konane) => {
     const blackLegalActionsMap = state.getBlackLegalActions();
     const whiteLegalActionsMap = state.getWhiteLegalActions();
     const numBlackLegalActions =
       Object.values(blackLegalActionsMap).flat(1).length;
     const numWhiteLegalActions =
       Object.values(whiteLegalActionsMap).flat(1).length;
-    return numBlackLegalActions - numWhiteLegalActions;
+    if (numWhiteLegalActions === 0) return Number.POSITIVE_INFINITY;
+    if (numBlackLegalActions === 0) return Number.NEGATIVE_INFINITY;
+    return (
+      (numBlackLegalActions - numWhiteLegalActions) *
+      (numBlackLegalActions / numWhiteLegalActions)
+    );
   };
-  if (computer === BLACK) return evalFn;
-  else return (state: Konane) => -evalFn(state);
+  const whiteComputerEvalFn = (state: Konane) => {
+    const blackLegalActionsMap = state.getBlackLegalActions();
+    const whiteLegalActionsMap = state.getWhiteLegalActions();
+    const numBlackLegalActions =
+      Object.values(blackLegalActionsMap).flat(1).length;
+    const numWhiteLegalActions =
+      Object.values(whiteLegalActionsMap).flat(1).length;
+    if (numWhiteLegalActions === 0) return Number.NEGATIVE_INFINITY;
+    if (numBlackLegalActions === 0) return Number.POSITIVE_INFINITY;
+    return (
+      (numWhiteLegalActions - numBlackLegalActions) *
+      (numWhiteLegalActions / numBlackLegalActions)
+    );
+  };
+  if (computer === BLACK) return blackComputerEvalFn;
+  else return whiteComputerEvalFn;
 };

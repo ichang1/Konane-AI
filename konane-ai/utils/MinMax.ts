@@ -23,6 +23,132 @@ export const oppositeMinMaxNodeType = (
   else return "min";
 };
 
+interface SuccessorCache<T, V> {
+  [key: string]: MinMaxNode<T, V>[];
+}
+
+interface EvalCache {
+  [key: string]: number;
+}
+
+export class MinMax<T, V> {
+  successorCache: SuccessorCache<T, V>;
+  evalCache: EvalCache;
+
+  constructor() {
+    this.successorCache = {};
+    this.evalCache = {};
+  }
+
+  minMax = (
+    node: MinMaxNode<T, V>,
+    maxDepth: number,
+    staticEvalFn: (nodeState: T) => number
+  ): V => {
+    /**
+     *
+     * @param node min max node
+     * @returns val of succ state from a move, best move to take from looking ahead
+     */
+    const minMaxRec = (node: MinMaxNode<T, V>): [number, V] => {
+      const { depth, move } = node;
+      const nodeStateStr = `${node.state}`;
+      const nodeSuccessors =
+        this.successorCache[nodeStateStr] || node.getSuccessors();
+      if (!(nodeStateStr in this.successorCache))
+        this.successorCache[nodeStateStr] = nodeSuccessors;
+      if (depth >= maxDepth || nodeSuccessors.length === 0) {
+        const stateEval =
+          this.evalCache[nodeStateStr] || staticEvalFn(node.state);
+        if (!(nodeStateStr in this.evalCache))
+          this.evalCache[nodeStateStr] = stateEval;
+        return [stateEval, move];
+      }
+      const bestMoveDetails = nodeSuccessors.reduce<[number, V]>(
+        (curBest, succNode) => {
+          // current best move and move's value
+          const [curBestMoveToSuccValue, curBestMoveToSucc] = curBest;
+          // best move from a successor and its value
+          const [bestMoveFromSuccValue, bestMoveFromSucc] = minMaxRec(succNode);
+          if (
+            minMaxNodeIsMax(node)
+              ? bestMoveFromSuccValue > curBestMoveToSuccValue
+              : bestMoveFromSuccValue < curBestMoveToSuccValue
+          ) {
+            // successor led to a better terminating game state
+            // the new best move value is from this successor's best descendent
+            // the new best move to take is the move to get to this successor
+            return [bestMoveFromSuccValue, succNode.move];
+          } else {
+            return curBest;
+          }
+        },
+        [Number.NEGATIVE_INFINITY, nodeSuccessors[0].move]
+      );
+      return bestMoveDetails;
+    };
+    const [bestSuccStateValue, bestMove] = minMaxRec(node);
+    return bestMove;
+  };
+
+  minMaxAlphaBeta = (
+    node: MinMaxNode<T, V>,
+    maxDepth: number,
+    staticEvalFn: (nodeState: T) => number
+  ): V => {
+    /**
+     *
+     * @param node min max node
+     * @returns val of succ state from a move, best move to take from looking ahead
+     */
+    const minMaxAlphaBetaRec = (node: MinMaxNode<T, V>): [number, V] => {
+      const { depth, move } = node;
+      const nodeStateStr = `${node.state}`;
+      const nodeSuccessors =
+        this.successorCache[nodeStateStr] || node.getSuccessors();
+      if (!(nodeStateStr in this.successorCache))
+        this.successorCache[nodeStateStr] = nodeSuccessors;
+      if (depth >= maxDepth || nodeSuccessors.length === 0) {
+        const stateEval =
+          this.evalCache[nodeStateStr] || staticEvalFn(node.state);
+        if (!(nodeStateStr in this.evalCache))
+          this.evalCache[nodeStateStr] = stateEval;
+        return [stateEval, move];
+      }
+      let { alpha, beta } = node;
+      let curBestMove = nodeSuccessors[0].move;
+      for (let succNode of nodeSuccessors) {
+        // successor function doesn't work with alpha beta so need to set it manually
+        succNode.alpha = alpha;
+        succNode.beta = beta;
+        const [bestMoveFromSuccValue, bestMoveFromSucc] =
+          minMaxAlphaBetaRec(succNode);
+        if (minMaxNodeIsMax(node)) {
+          if (bestMoveFromSuccValue > alpha) {
+            // found move that results in better game state
+            alpha = bestMoveFromSuccValue;
+            curBestMove = succNode.move;
+          }
+          if (alpha >= beta) return [beta, curBestMove];
+        } else {
+          // min node
+          if (bestMoveFromSuccValue < beta) {
+            // found move that results in better game state
+            beta = bestMoveFromSuccValue;
+            curBestMove = succNode.move;
+          }
+          if (alpha <= beta) return [alpha, curBestMove];
+        }
+      }
+      return [minMaxNodeIsMax(node) ? alpha : beta, curBestMove];
+    };
+    const [bestSuccStateValue, bestMove] = minMaxAlphaBetaRec(node);
+    return bestMove;
+  };
+}
+
+//---------------------------------------------------------------------
+
 export class MinMaxNode<T, V> {
   // state is of type T
   // action to get to a state is of type V

@@ -15,6 +15,7 @@ import {
   verboseCellPosition,
   RemoveChecker,
   MoveChecker,
+  Cell,
 } from "../konane/KonaneUtils";
 import { useEffect, useRef, useState } from "react";
 import Modal from "../components/Modal/Modal";
@@ -249,37 +250,51 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
           ? "rotating-cell-border-black-secondary"
           : "rotating-cell-border-white-secondary";
       // sequence of animations/resolvers
-      const callbacks = [
-        () => {
-          // record move in history
-          const description = `${game.turn + 1}. ${
-            playerToPlay === human ? "Human" : "Computer"
-          } (${playerToPlay}) moves (${verboseCellPosition(from).join(
-            ", "
-          )}) to (${verboseCellPosition(to).join(", ")})`;
-          writeToHistory(description);
-          // add border to checker that will be moved
-          fromCellElement.classList.add(solidBorderCls);
-          // add rotating border to destination
-          toCellElement.classList.add(dashedBorderCls);
-        },
-        () => {
-          // remove border from checker that will be moved
-          fromCellElement.classList.remove(solidBorderCls);
-          // make destination cell solid
-          toCellElement.classList.remove(dashedBorderCls);
-          // add border to cell that checker will be moved to
-          toCellElement.classList.add(solidBorderCls);
-        },
-        () => {
-          // remove border to cell that checker will be moved to
-          toCellElement.classList.remove(solidBorderCls);
-          game.applyAction(action);
-          setPlayerToPlay((p) => (p === BLACK ? WHITE : BLACK));
-        },
+      const callbacks: [() => void, (idx: number) => number][] = [
+        [
+          () => {
+            // record move in history
+            const description = `${game.turn + 1}. ${
+              playerToPlay === human ? "Human" : "Computer"
+            } (${playerToPlay}) moves (${verboseCellPosition(from).join(
+              ", "
+            )}) to (${verboseCellPosition(to).join(", ")})`;
+            writeToHistory(description);
+            // add border to checker that will be moved
+            fromCellElement.classList.add(solidBorderCls);
+            // add rotating border to destination
+            toCellElement.classList.add(dashedBorderCls);
+          },
+          (idx: number) => idx * ANIMATION_SPEED,
+        ],
+        [
+          () => {
+            // remove border from checker that will be moved
+            fromCellElement.classList.remove(solidBorderCls);
+            // make destination cell solid
+            toCellElement.classList.remove(dashedBorderCls);
+            // add border to cell that checker will be moved to
+            toCellElement.classList.add(solidBorderCls);
+          },
+          (idx: number) => idx * ANIMATION_SPEED,
+        ],
+        [
+          () => {
+            // remove border to cell that checker will be moved to
+            toCellElement.classList.remove(solidBorderCls);
+            game.applyAction(action);
+          },
+          (idx: number) => idx * ANIMATION_SPEED,
+        ],
+        [
+          () => {
+            setPlayerToPlay((p) => (p === BLACK ? WHITE : BLACK));
+          },
+          (idx: number) => (idx - 1) * ANIMATION_SPEED + 150,
+        ],
       ];
-      callbacks.forEach((cb, idx) => {
-        setTimeout(cb, idx * ANIMATION_SPEED);
+      callbacks.forEach(([cb, delayFn], idx) => {
+        setTimeout(cb, delayFn(idx));
       });
     } else if (actionIsRemoveChecker(action)) {
       const { cell } = action;
@@ -291,27 +306,38 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
           ? "cell-border-black-primary"
           : "cell-border-white-primary";
       // sequence of animations/resolvers
-      const callbacks = [
-        () => {
-          // record remove in history
-          const description = `${game.turn + 1}. ${
-            playerToPlay === human ? "Human" : "Computer"
-          } (${playerToPlay}) removes (${verboseCellPosition(cell).join(
-            ", "
-          )})`;
-          writeToHistory(description);
-          // add border to checker that will be removed
-          cellElement.classList.add(solidBorderCls);
-        },
-        () => {
-          // remove border from checker that will be removed
-          cellElement.classList.remove(solidBorderCls);
-          game.applyAction(action);
-          setPlayerToPlay((p) => (p === BLACK ? WHITE : BLACK));
-        },
+      const callbacks: [() => void, (idx: number) => number][] = [
+        [
+          () => {
+            // record remove in history
+            const description = `${game.turn + 1}. ${
+              playerToPlay === human ? "Human" : "Computer"
+            } (${playerToPlay}) removes (${verboseCellPosition(cell).join(
+              ", "
+            )})`;
+            writeToHistory(description);
+            // add border to checker that will be removed
+            cellElement.classList.add(solidBorderCls);
+          },
+          (idx: number) => idx * ANIMATION_SPEED,
+        ],
+        [
+          () => {
+            // remove border from checker that will be removed
+            cellElement.classList.remove(solidBorderCls);
+            game.applyAction(action);
+          },
+          (idx: number) => idx * ANIMATION_SPEED,
+        ],
+        [
+          () => {
+            setPlayerToPlay((p) => (p === BLACK ? WHITE : BLACK));
+          },
+          (idx: number) => (idx - 1) * ANIMATION_SPEED + 150,
+        ],
       ];
-      callbacks.forEach((cb, idx) => {
-        setTimeout(cb, idx * ANIMATION_SPEED);
+      callbacks.forEach(([cb, delayFn], idx) => {
+        setTimeout(cb, delayFn(idx));
       });
     }
   };
@@ -395,9 +421,10 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
     }
   }, [playerToPlay]);
 
-  useEffect(() => {
-    console.log(humanWins);
-  }, [humanWins]);
+  /**
+   * Rerender if internal board changes at all
+   */
+  useEffect(() => {}, [`${gameRef.current?.board}`]);
 
   return (
     <div
