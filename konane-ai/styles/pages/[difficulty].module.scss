@@ -6,6 +6,7 @@
   grid-template-columns: repeat(3, auto);
   grid-template-rows: repeat(2, auto);
   place-items: center center;
+  overflow: hidden;
 }
 
 .konane-board {
