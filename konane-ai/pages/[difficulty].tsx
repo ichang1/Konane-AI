@@ -21,6 +21,7 @@ import { useEffect, useRef, useState } from "react";
 import Modal from "../components/Modal/Modal";
 import SideBar from "../components/SideBar/SideBar";
 import KonaneGame from "../konane/KonaneGame";
+import LoadingIndicator from "../components/LoadingIndicator/LoadingIndicator";
 
 const n = 8;
 const emptyBoard = [...Array(n)].map((_) => [...Array(n)]);
@@ -49,6 +50,9 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   const [activeCell, setActiveCell] = useState<[number, number] | null>(null);
   const [activeAction, setActiveAction] = useState<Action | null>(null);
   const [humanWins, setHumanWins] = useState<boolean | null>(null);
+  const [computerThinking, setComputerThinking] = useState<boolean | null>(
+    null
+  );
 
   const gameRef = useRef<KonaneGame | null>(null);
   const boardRef = useRef<(HTMLButtonElement | null)[][]>(emptyBoard);
@@ -253,6 +257,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
       const callbacks: [() => void, (idx: number) => number][] = [
         [
           () => {
+            setComputerThinking(false);
             // record move in history
             const description = `${game.turn + 1}. ${
               playerToPlay === human ? "Human" : "Computer"
@@ -288,6 +293,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
         ],
         [
           () => {
+            if (playerToPlay === human) setComputerThinking(true);
             setPlayerToPlay((p) => (p === BLACK ? WHITE : BLACK));
           },
           (idx: number) => (idx - 1) * ANIMATION_SPEED + 150,
@@ -309,6 +315,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
       const callbacks: [() => void, (idx: number) => number][] = [
         [
           () => {
+            setComputerThinking(false);
             // record remove in history
             const description = `${game.turn + 1}. ${
               playerToPlay === human ? "Human" : "Computer"
@@ -396,11 +403,11 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
       if (Object.keys(playerLegalActions).length === 0) {
         // human has no moves left, human loses
         setHumanWins(false);
-        console.log(
-          `human: ${human} loses, computer: ${
-            human === BLACK ? WHITE : BLACK
-          } wins`
-        );
+        // console.log(
+        //   `human: ${human} loses, computer: ${
+        //     human === BLACK ? WHITE : BLACK
+        //   } wins`
+        // );
       } else {
         addPlayerCellsSpecialProps();
       }
@@ -410,11 +417,11 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
       if (!bestAction) {
         // computer has no moves left, human wins
         setHumanWins(true);
-        console.log(
-          `human: ${human} wins, computer: ${
-            human === BLACK ? WHITE : BLACK
-          } loses`
-        );
+        // console.log(
+        //   `human: ${human} wins, computer: ${
+        //     human === BLACK ? WHITE : BLACK
+        //   } loses`
+        // );
       } else {
         animateAndResolveAction(bestAction);
       }
@@ -425,6 +432,10 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
    * Rerender if internal board changes at all
    */
   useEffect(() => {}, [`${gameRef.current?.board}`]);
+
+  // useEffect(() => {
+  //   console.log(computerThinking);
+  // }, [computerThinking]);
 
   return (
     <div
@@ -585,6 +596,11 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
             }}
           >
             Computer: {(human === BLACK ? WHITE : BLACK).toUpperCase()}
+            {computerThinking && (
+              <LoadingIndicator
+                className={styles["computer-loading-indicator"]}
+              />
+            )}
           </div>
         </div>
       )}
