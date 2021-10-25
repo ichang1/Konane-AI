@@ -15,12 +15,12 @@ import {
   verboseCellPosition,
   RemoveChecker,
   MoveChecker,
-  Cell,
+  oppositeColor,
 } from "../konane/KonaneUtils";
 import { useEffect, useRef, useState } from "react";
 import Modal from "../components/Modal/Modal";
 import SideBar from "../components/SideBar/SideBar";
-import KonaneGame from "../konane/KonaneGame";
+import KonaneGame, { boardValue2, boardValue3 } from "../konane/KonaneGame";
 import LoadingIndicator from "../components/LoadingIndicator/LoadingIndicator";
 
 const n = 8;
@@ -50,9 +50,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   const [activeCell, setActiveCell] = useState<[number, number] | null>(null);
   const [activeAction, setActiveAction] = useState<Action | null>(null);
   const [humanWins, setHumanWins] = useState<boolean | null>(null);
-  const [computerThinking, setComputerThinking] = useState<boolean | null>(
-    null
-  );
+  const [computerThinking, setComputerThinking] = useState<boolean>(true);
 
   const gameRef = useRef<KonaneGame | null>(null);
   const boardRef = useRef<(HTMLButtonElement | null)[][]>(emptyBoard);
@@ -398,6 +396,8 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
     if (!game) return;
     removeAllCellsSpecialProps();
     if (playerToPlay === human) {
+      console.log(boardValue3(game.konane, oppositeColor(human)), "computer");
+      console.log(boardValue3(game.konane, human), "human");
       // human's turn
       const playerLegalActions = game.getLegalHumanActions();
       if (Object.keys(playerLegalActions).length === 0) {
@@ -596,11 +596,13 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
             }}
           >
             Computer: {(human === BLACK ? WHITE : BLACK).toUpperCase()}
-            {computerThinking && (
-              <LoadingIndicator
-                className={styles["computer-loading-indicator"]}
-              />
-            )}
+            {computerThinking &&
+              humanWins === null &&
+              playerToPlay !== human && (
+                <LoadingIndicator
+                  className={styles["computer-loading-indicator"]}
+                />
+              )}
           </div>
         </div>
       )}

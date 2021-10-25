@@ -101,3 +101,17 @@ export const verboseCellPosition = (pos: [number, number]) => {
   const [row, col] = pos;
   return [row + 1, col + 1];
 };
+
+export const oppositeColor = (p: Player) => {
+  if (p === BLACK) return WHITE;
+  else return BLACK;
+};
+
+export const isCorner = (cellPos: [number, number]) => {
+  const [row, col] = cellPos;
+  if (row === 0 && col === 0) return true;
+  if (row === 7 && col === 0) return true;
+  if (row === 0 && col === 7) return true;
+  if (row === 7 && col === 7) return true;
+  return false;
+};
