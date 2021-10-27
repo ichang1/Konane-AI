@@ -23,21 +23,17 @@ export const oppositeMinMaxNodeType = (
   else return "min";
 };
 
-interface SuccessorCache<T, V> {
-  [key: string]: MinMaxNode<T, V>[];
+interface GenericWithHash {
+  hash: () => number;
 }
 
-interface EvalCache {
-  [key: string]: number;
-}
-
-export class MinMax<T, V> {
-  successorCache: SuccessorCache<T, V>;
-  evalCache: EvalCache;
+export class MinMax<T extends GenericWithHash, V> {
+  successorCache: Map<String, MinMaxNode<T, V>[]>;
+  evalCache: Map<String, number>;
 
   constructor() {
-    this.successorCache = {};
-    this.evalCache = {};
+    this.successorCache = new Map();
+    this.evalCache = new Map();
   }
 
   minMax = (
@@ -52,16 +48,16 @@ export class MinMax<T, V> {
      */
     const minMaxRec = (node: MinMaxNode<T, V>): [number, V] => {
       const { depth, move } = node;
-      const nodeStateStr = `${node.state}`;
+      const nodeStateStr = node.state.toString();
       const nodeSuccessors =
-        this.successorCache[nodeStateStr] || node.getSuccessors();
-      if (!(nodeStateStr in this.successorCache))
-        this.successorCache[nodeStateStr] = nodeSuccessors;
+        this.successorCache.get(nodeStateStr) || node.getSuccessors();
+      if (!this.successorCache.has(nodeStateStr))
+        this.successorCache.set(nodeStateStr, nodeSuccessors);
       if (depth >= maxDepth || nodeSuccessors.length === 0) {
         const stateEval =
-          this.evalCache[nodeStateStr] || staticEvalFn(node.state);
-        if (!(nodeStateStr in this.evalCache))
-          this.evalCache[nodeStateStr] = stateEval;
+          this.evalCache.get(nodeStateStr) || staticEvalFn(node.state);
+        if (!this.evalCache.has(nodeStateStr))
+          this.evalCache.set(nodeStateStr, stateEval);
         return [stateEval, move];
       }
       const bestMoveDetails = nodeSuccessors.reduce<[number, V]>(
@@ -103,16 +99,16 @@ export class MinMax<T, V> {
      */
     const minMaxAlphaBetaRec = (node: MinMaxNode<T, V>): [number, V] => {
       const { depth, move } = node;
-      const nodeStateStr = `${node.state}`;
+      const nodeStateStr = node.state.toString();
       const nodeSuccessors =
-        this.successorCache[nodeStateStr] || node.getSuccessors();
-      if (!(nodeStateStr in this.successorCache))
-        this.successorCache[nodeStateStr] = nodeSuccessors;
+        this.successorCache.get(nodeStateStr) || node.getSuccessors();
+      if (!this.successorCache.has(nodeStateStr))
+        this.successorCache.set(nodeStateStr, nodeSuccessors);
       if (depth >= maxDepth || nodeSuccessors.length === 0) {
         const stateEval =
-          this.evalCache[nodeStateStr] || staticEvalFn(node.state);
-        if (!(nodeStateStr in this.evalCache))
-          this.evalCache[nodeStateStr] = stateEval;
+          this.evalCache.get(nodeStateStr) || staticEvalFn(node.state);
+        if (!this.evalCache.has(nodeStateStr))
+          this.evalCache.set(nodeStateStr, stateEval);
         return [stateEval, move];
       }
       let { alpha, beta } = node;

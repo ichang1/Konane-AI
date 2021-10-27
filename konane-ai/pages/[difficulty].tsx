@@ -3,7 +3,6 @@ import Head from "next/head";
 import Image from "next/image";
 import styles from "../styles/pages/[difficulty].module.scss";
 import {
-  konaneDifficulties,
   Player,
   BLACK,
   WHITE,
@@ -15,13 +14,13 @@ import {
   verboseCellPosition,
   RemoveChecker,
   MoveChecker,
-  oppositeColor,
 } from "../konane/KonaneUtils";
 import { useEffect, useRef, useState } from "react";
 import Modal from "../components/Modal/Modal";
 import SideBar from "../components/SideBar/SideBar";
-import KonaneGame, { boardValue2, boardValue3 } from "../konane/KonaneGame";
+import KonaneGame, { boardValue3 } from "../konane/KonaneGame";
 import LoadingIndicator from "../components/LoadingIndicator/LoadingIndicator";
+import { konaneDifficulties, oppositeColor } from "../konane/KonaneGameUtils";
 
 const n = 8;
 const emptyBoard = [...Array(n)].map((_) => [...Array(n)]);
@@ -199,14 +198,9 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
     if (!gameRef.current) return;
     const game = gameRef.current;
     const playerLegalActions = game.getLegalHumanActions();
-    Object.entries(playerLegalActions).forEach(
-      ([cellString, actionsFromCell]) => {
-        const [row, col] = cellString.split(",").map((n) => parseInt(n));
-        if (isNaN(row) || isNaN(col) || row === undefined || col === undefined)
-          return;
-        addCellSpecialProps([row, col], actionsFromCell);
-      }
-    );
+    playerLegalActions.forEach((actionsFromCell, cell) => {
+      addCellSpecialProps(cell, actionsFromCell);
+    });
   };
 
   /**
@@ -355,10 +349,9 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
       const game = gameRef.current;
       if (!game) return;
       const legalHumanActions = game.getLegalHumanActions();
-      if (!legalHumanActions) return;
       const thisCellClickHandler = getMoveCheckerClickHandler(
         activeCell,
-        legalHumanActions[activeCell.toString()] as MoveChecker[]
+        legalHumanActions.get(activeCell) as MoveChecker[]
       );
       if (thisCellClickHandler) thisCellClickHandler();
     } else {
@@ -396,11 +389,16 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
     if (!game) return;
     removeAllCellsSpecialProps();
     if (playerToPlay === human) {
+      // console.log(game.konane);
+      // const blackLegalActionsMap = game.konane.getBlackLegalActions();
+      // const whiteLegalActionsMap = game.konane.getWhiteLegalActions();
+      // console.log(blackLegalActionsMap);
+      // console.log(whiteLegalActionsMap);
       console.log(boardValue3(game.konane, oppositeColor(human)), "computer");
       console.log(boardValue3(game.konane, human), "human");
       // human's turn
       const playerLegalActions = game.getLegalHumanActions();
-      if (Object.keys(playerLegalActions).length === 0) {
+      if (playerLegalActions.size === 0) {
         // human has no moves left, human loses
         setHumanWins(false);
         // console.log(
@@ -432,10 +430,6 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
    * Rerender if internal board changes at all
    */
   useEffect(() => {}, [`${gameRef.current?.board}`]);
-
-  // useEffect(() => {
-  //   console.log(computerThinking);
-  // }, [computerThinking]);
 
   return (
     <div

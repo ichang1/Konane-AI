@@ -82,17 +82,6 @@ export type KonaneGameState = {
   };
 };
 
-export type ComputerDifficulty = 0 | 1 | 2 | 3 | 4 | 5;
-
-export const konaneDifficulties: { [key: string]: ComputerDifficulty } = {
-  novice: 0,
-  easy: 1,
-  medium: 2,
-  hard: 3,
-  challenger: 4,
-  grandmaster: 5,
-};
-
 export const stringIsPlayer = (s: string): s is Player => {
   return s === WHITE || s === BLACK;
 };
@@ -100,18 +89,4 @@ export const stringIsPlayer = (s: string): s is Player => {
 export const verboseCellPosition = (pos: [number, number]) => {
   const [row, col] = pos;
   return [row + 1, col + 1];
-};
-
-export const oppositeColor = (p: Player) => {
-  if (p === BLACK) return WHITE;
-  else return BLACK;
-};
-
-export const isCorner = (cellPos: [number, number]) => {
-  const [row, col] = cellPos;
-  if (row === 0 && col === 0) return true;
-  if (row === 7 && col === 0) return true;
-  if (row === 0 && col === 7) return true;
-  if (row === 7 && col === 7) return true;
-  return false;
 };

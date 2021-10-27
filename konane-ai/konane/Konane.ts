@@ -1,3 +1,4 @@
+import { hash } from "../utils/misc";
 import {
   Action,
   BLACK,
@@ -25,19 +26,23 @@ export default class Konane {
     this.board = this.initializeBoard();
   }
 
+  getBlackSuccessors() {
+    const blackLegalActions = this.getBlackLegalActions();
+    return this.getSuccessors(blackLegalActions);
+  }
+
+  getWhiteSuccessors() {
+    const whiteLegalActions = this.getWhiteLegalActions();
+    return this.getSuccessors(whiteLegalActions);
+  }
+
   /**
    *
    * @returns array of successor konanes
    */
-  getSuccessors() {
-    const playerToPlay = this.turn % 2 === 0 ? BLACK : WHITE;
-    const playerLegalActions =
-      playerToPlay === BLACK
-        ? this.getBlackLegalActions()
-        : this.getWhiteLegalActions();
+  private getSuccessors(playerLegalActions: Map<[number, number], Action[]>) {
     if (!playerLegalActions) return [];
-    const playerLegalActionsFlat: Action[] =
-      Object.values(playerLegalActions).flat(1);
+    const playerLegalActionsFlat = [...playerLegalActions.values()].flat(1);
     const successors: [Konane, Action][] = [];
     playerLegalActionsFlat.forEach((action) => {
       const successorBoard = this.getSuccesorBoard(action);
@@ -122,8 +127,8 @@ export default class Konane {
    * Gets all legal actions for black
    * @returns all legal actions for black
    */
-  getBlackLegalActions(): { [key: string]: Action[] } {
-    if (this.turn === 0) {
+  getBlackLegalActions(): Map<[number, number], Action[]> {
+    if (this.turn <= 1) {
       // remove black checker
       return this.getLegalRemoves(BLACK);
     }
@@ -135,8 +140,8 @@ export default class Konane {
    * Gets all legal actions for white
    * @returns all legal actions for white
    */
-  getWhiteLegalActions(): { [key: string]: Action[] } {
-    if (this.turn === 1) {
+  getWhiteLegalActions(): Map<[number, number], Action[]> {
+    if (this.turn <= 1) {
       // remove white checker adjacent to initial removed black checker
       // there should be 1 empty cell on the board
       return this.getLegalRemoves(WHITE);
@@ -155,7 +160,7 @@ export default class Konane {
       player === BLACK
         ? this.getCheckerCells(BLACK)
         : this.getCheckerCells(WHITE);
-    const legalMoves: { [key: string]: MoveChecker[] } = {};
+    const legalMoves: Map<[number, number], MoveChecker[]> = new Map();
     playerCheckerCells.forEach(([curRow, curCol]) => {
       // legal jumps from this cell
       const legalCheckerJumpsFromCell = this.getLegalCheckerJumps(
@@ -172,7 +177,7 @@ export default class Konane {
         })
       );
       if (legalMovesFromCell.length === 0) return;
-      legalMoves[[curRow, curCol].toString()] = legalMovesFromCell;
+      legalMoves.set([curRow, curCol], legalMovesFromCell);
     });
     return legalMoves;
   }
@@ -264,19 +269,20 @@ export default class Konane {
    * @param player the player to get the legal removes for
    * @returns array of legal removes for player
    */
-  private getLegalRemoves(player: Player): { [key: string]: RemoveChecker[] } {
+  private getLegalRemoves(player: Player) {
+    const legalRemoves: Map<[number, number], RemoveChecker[]> = new Map();
     if (player === BLACK) {
       const legalRemoveCells: [number, number][] = [
         [Math.floor(this.n / 2) - 1, Math.floor(this.n / 2) - 1],
       ];
-      const legalRemoves: { [key: string]: RemoveChecker[] } = {};
+      const legalRemoves: Map<[number, number], RemoveChecker[]> = new Map();
       legalRemoveCells.forEach((cell) => {
         const action: RemoveChecker = {
           player: BLACK,
           type: "remove",
           cell,
         };
-        legalRemoves[cell.toString()] = [action];
+        legalRemoves.set(cell, [action]);
       });
       return legalRemoves;
     }
@@ -285,14 +291,13 @@ export default class Konane {
     const legalRemoveCells: [number, number][] = [
       [Math.floor(this.n / 2) - 1, Math.floor(this.n / 2)],
     ];
-    const legalRemoves: { [key: string]: RemoveChecker[] } = {};
     legalRemoveCells.forEach((cell) => {
       const action: RemoveChecker = {
         player: WHITE,
         type: "remove",
         cell,
       };
-      legalRemoves[cell.toString()] = [action];
+      legalRemoves.set(cell, [action]);
     });
     return legalRemoves;
   }
@@ -336,5 +341,9 @@ export default class Konane {
   toString() {
     const s = this.board.toString() + " " + this.turn;
     return s;
+  }
+
+  hash() {
+    return hash(this.toString());
   }
 }

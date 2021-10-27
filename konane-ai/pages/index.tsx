@@ -1,8 +1,8 @@
 import type { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
+import { konaneDifficulties } from "../konane/KonaneGameUtils";
 import styles from "../styles/pages/index.module.scss";
-import { konaneDifficulties } from "../konane/KonaneUtils";
 
 const Home: NextPage = () => {
   return (

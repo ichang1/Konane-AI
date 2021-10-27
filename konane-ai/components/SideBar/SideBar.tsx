@@ -1,5 +1,5 @@
 import React from "react";
-import { konaneDifficulties } from "../../konane/KonaneUtils";
+import { konaneDifficulties } from "../../konane/KonaneGameUtils";
 import styles from "../../styles/components/SideBar/SideBar.module.scss";
 interface SideBarProps {
   navigation: boolean;

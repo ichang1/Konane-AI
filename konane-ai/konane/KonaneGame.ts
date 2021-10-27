@@ -2,27 +2,25 @@ import { MinMax, MinMaxNode } from "../utils/MinMax";
 import { randInt } from "../utils/misc";
 import Konane from "./Konane";
 import {
+  ComputerDifficulty,
+  oppositeColor,
+  konaneDifficulties,
+  computerDifficultyDepths,
+  isCorner,
+  getKonaneSuccessors,
+  actionToString,
+} from "./KonaneGameUtils";
+import {
   Player,
   Action,
   BLACK,
   WHITE,
-  ComputerDifficulty,
-  konaneDifficulties,
   actionIsRemoveChecker,
   MoveChecker,
   cellIsChecker,
   actionIsMoveChecker,
-  oppositeColor,
-  isCorner,
 } from "./KonaneUtils";
 
-const computerDifficultyDepths: { [key: string]: number } = {
-  easy: 2,
-  medium: 4,
-  hard: 6,
-  challenger: 8,
-  grandmaster: 10,
-};
 export default class KonaneGame {
   human: Player = WHITE;
   computer: Player = BLACK;
@@ -64,14 +62,14 @@ export default class KonaneGame {
     switch (this.difficulty) {
       case konaneDifficulties.novice:
         const legalActions = this.getLegalComputerActions();
-        const legalActionsFlat = Object.values(legalActions).flat(1);
+        const legalActionsFlat = [...legalActions.values()].flat(1);
         if (legalActionsFlat.length === 0) return null;
         const randIdx = randInt(0, legalActionsFlat.length - 1);
         return legalActionsFlat[randIdx];
       case konaneDifficulties.easy:
         const easyNode = new MinMaxNode<Konane, Action | null>(
           this.konane,
-          (k: Konane) => k.getSuccessors(),
+          getKonaneSuccessors,
           "max",
           0,
           null
@@ -79,12 +77,12 @@ export default class KonaneGame {
         return this.minMaxHandler.minMaxAlphaBeta(
           easyNode,
           computerDifficultyDepths.easy,
-          getKonaneStaticEval(this.computer)
+          getKonaneStaticEval(this.computer, boardValueDiff)
         );
       case konaneDifficulties.medium:
         const mediumNode = new MinMaxNode<Konane, Action | null>(
           this.konane,
-          (k: Konane) => k.getSuccessors(),
+          getKonaneSuccessors,
           "max",
           0,
           null
@@ -92,12 +90,12 @@ export default class KonaneGame {
         return this.minMaxHandler.minMaxAlphaBeta(
           mediumNode,
           computerDifficultyDepths.medium,
-          getKonaneStaticEval(this.computer)
+          getKonaneStaticEval(this.computer, boardValueDiff)
         );
       case konaneDifficulties.hard:
         const hardNode = new MinMaxNode<Konane, Action | null>(
           this.konane,
-          (k: Konane) => k.getSuccessors(),
+          getKonaneSuccessors,
           "max",
           0,
           null
@@ -105,12 +103,12 @@ export default class KonaneGame {
         return this.minMaxHandler.minMaxAlphaBeta(
           hardNode,
           computerDifficultyDepths.hard,
-          getKonaneStaticEval(this.computer)
+          getKonaneStaticEval(this.computer, boardValueDiff)
         );
       case konaneDifficulties.challenger:
         const challengerNode = new MinMaxNode<Konane, Action | null>(
           this.konane,
-          (k: Konane) => k.getSuccessors(),
+          getKonaneSuccessors,
           "max",
           0,
           null
@@ -118,12 +116,12 @@ export default class KonaneGame {
         return this.minMaxHandler.minMaxAlphaBeta(
           challengerNode,
           computerDifficultyDepths.challenger,
-          getKonaneStaticEval(this.computer)
+          getKonaneStaticEval(this.computer, boardValueDiff)
         );
       case konaneDifficulties.grandmaster:
         const grandmasterNode = new MinMaxNode<Konane, Action | null>(
           this.konane,
-          (k: Konane) => k.getSuccessors(),
+          getKonaneSuccessors,
           "max",
           0,
           null
@@ -131,7 +129,7 @@ export default class KonaneGame {
         return this.minMaxHandler.minMaxAlphaBeta(
           grandmasterNode,
           computerDifficultyDepths.grandmaster,
-          getKonaneStaticEval(this.computer)
+          getKonaneStaticEval(this.computer, boardValueDiff)
         );
       default:
         return null;
@@ -156,123 +154,20 @@ export default class KonaneGame {
  * @param computer type of player computer is playing as
  * @returns arrow fn for gettin
  */
-const getKonaneStaticEval = (computer: Player) => {
-  // // number of black moves minus number of white moves
-  // const blackComputerEvalFn = (state: Konane) => {
-  //   const blackLegalActionsMap = state.getBlackLegalActions();
-  //   const whiteLegalActionsMap = state.getWhiteLegalActions();
-  //   const numBlackLegalActions =
-  //     Object.values(blackLegalActionsMap).flat(1).length;
-  //   const numWhiteLegalActions =
-  //     Object.values(whiteLegalActionsMap).flat(1).length;
-  //   if (numWhiteLegalActions === 0) return Number.POSITIVE_INFINITY;
-  //   if (numBlackLegalActions === 0) return Number.NEGATIVE_INFINITY;
-  //   return (
-  //     (numBlackLegalActions - numWhiteLegalActions) *
-  //     (numBlackLegalActions / numWhiteLegalActions)
-  //   );
-  // };
-  // const whiteComputerEvalFn = (state: Konane) => {
-  //   const blackLegalActionsMap = state.getBlackLegalActions();
-  //   const whiteLegalActionsMap = state.getWhiteLegalActions();
-  //   const numBlackLegalActions =
-  //     Object.values(blackLegalActionsMap).flat(1).length;
-  //   const numWhiteLegalActions =
-  //     Object.values(whiteLegalActionsMap).flat(1).length;
-  //   if (numWhiteLegalActions === 0) return Number.NEGATIVE_INFINITY;
-  //   if (numBlackLegalActions === 0) return Number.POSITIVE_INFINITY;
-  //   return (
-  //     (numWhiteLegalActions - numBlackLegalActions) *
-  //     (numWhiteLegalActions / numBlackLegalActions)
-  //   );
-  // };
-  // if (computer === BLACK) return blackComputerEvalFn;
-  // else return whiteComputerEvalFn;
-
+export const getKonaneStaticEval = (
+  computer: Player,
+  hueristic: (state: Konane, player: Player) => number
+) => {
   const fn = (state: Konane) => {
-    const computerBoardValue = boardValue3(state, computer);
-    const humanBoardValue = boardValue3(state, oppositeColor(computer));
-    return computerBoardValue - humanBoardValue;
-    // const successorValues = state
-    //   .getSuccessors()
-    //   .map(
-    //     ([succ, _]) =>
-    //       boardValue2(succ, computer) -
-    //       boardValue2(succ, oppositeColor(computer))
-    //   );
-    // return Math.max(...successorValues);
+    return hueristic(state, computer);
   };
   return fn;
 };
-
-// const boardValue = (state: Konane, player: Player) => {
-//   const blackLegalActionsMap = state.getBlackLegalActions();
-//   const whiteLegalActionsMap = state.getWhiteLegalActions();
-//   const numBlackLegalActions =
-//     Object.values(blackLegalActionsMap).flat(1).length;
-//   const numWhiteLegalActions =
-//     Object.values(whiteLegalActionsMap).flat(1).length;
-//   if (player === BLACK) {
-//     if (numWhiteLegalActions === 0) return Number.POSITIVE_INFINITY;
-//     if (numBlackLegalActions === 0) return Number.NEGATIVE_INFINITY;
-//     return (
-//       (numBlackLegalActions - numWhiteLegalActions) *
-//       (numBlackLegalActions / numWhiteLegalActions)
-//     );
-//   } else {
-//     // player is white
-//     if (numWhiteLegalActions === 0) return Number.NEGATIVE_INFINITY;
-//     if (numBlackLegalActions === 0) return Number.POSITIVE_INFINITY;
-//     return (
-//       (numWhiteLegalActions - numBlackLegalActions) *
-//       (numWhiteLegalActions / numBlackLegalActions)
-//     );
-//   }
-// };
-
 // classifications
 // 1. checker threatens other pieces without being threatened => 2
 // 2. checker threatens other pieces while also being threatened => 1
 // 3. check doesn't threaten and is not threatened => 0
 // 4. checker doesn't threaten other pieces while also being threatened => -1
-
-const boardValue = (state: Konane, player: Player) => {
-  const blackLegalActionsMap = state.getBlackLegalActions();
-  const whiteLegalActionsMap = state.getWhiteLegalActions();
-  const playerChecker = player === BLACK ? "X" : "O";
-  const playerActionsMap =
-    player === BLACK ? blackLegalActionsMap : whiteLegalActionsMap;
-  const opposingActionsMap =
-    player === BLACK ? whiteLegalActionsMap : blackLegalActionsMap;
-
-  let value = 0;
-  for (let row = 0; row < 8; row++) {
-    for (let col = 0; col < 8; col++) {
-      const cell = state.board[row][col];
-      if (cell !== playerChecker) continue;
-      const checkerPos: [number, number] = [row, col];
-      const checkerThreatening = checkerIsThreatening(
-        state,
-        checkerPos,
-        player
-      );
-      const checkerThreatened = checkerIsThreatened(state, checkerPos, player);
-      if (checkerThreatening && !checkerThreatened) {
-        //    O X O
-        value += 4;
-      } else if (checkerThreatening && checkerThreatened) {
-        //  X O
-        value += 1;
-      } else if (!checkerThreatening && checkerThreatened) {
-        //  X O X
-        value -= 2;
-      } else {
-        value += 1.5;
-      }
-    }
-  }
-  return value;
-};
 
 const checkerIsThreatening = (
   state: Konane,
@@ -283,7 +178,7 @@ const checkerIsThreatening = (
     player === BLACK
       ? state.getBlackLegalActions()
       : state.getWhiteLegalActions();
-  return checkerPos.toString() in playerActionsMap;
+  return playerActionsMap.has(checkerPos);
 };
 
 const checkerIsThreatened = (
@@ -291,12 +186,14 @@ const checkerIsThreatened = (
   checkerPos: [number, number],
   player: Player
 ) => {
+  console.table(state.board);
+  console.log(checkerPos);
   const opposingActionsMap =
     player === BLACK
       ? state.getWhiteLegalActions()
       : state.getBlackLegalActions();
   const [row, col] = checkerPos;
-  const opposingActionsFlat = Object.values(opposingActionsMap).flat(1);
+  const opposingActionsFlat = [...opposingActionsMap.values()].flat(1);
   for (let action of opposingActionsFlat) {
     if (actionIsMoveChecker(action)) {
       const { to, from } = action;
@@ -308,17 +205,21 @@ const checkerIsThreatened = (
       const maxCol = Math.max(toCol, fromCol);
       if (minRow === maxRow) {
         // move is left/right
-        if (row === minRow && minCol < col && col < maxCol) return true;
+        if (row === minRow && minCol < col && col < maxCol) {
+          return true;
+        }
       } else if (minCol === maxCol) {
         // move is up/down
-        if (col === minCol && minRow < row && row < maxRow) return true;
+        if (col === minCol && minRow < row && row < maxRow) {
+          return true;
+        }
       }
     }
   }
   return false;
 };
 
-export const boardValue2 = (state: Konane, player: Player) => {
+export const simple = (state: Konane, player: Player) => {
   const blackLegalActionsMap = state.getBlackLegalActions();
   const whiteLegalActionsMap = state.getWhiteLegalActions();
   const playerActionsMap =
@@ -326,117 +227,143 @@ export const boardValue2 = (state: Konane, player: Player) => {
   const opposingActionsMap =
     player === BLACK ? whiteLegalActionsMap : blackLegalActionsMap;
 
-  const playerActionsFlat = Object.values(playerActionsMap).flat(1);
-  const opposingActionsFlat = Object.values(opposingActionsMap).flat(1);
+  const playerActionsFlat = [...playerActionsMap.values()].flat(1);
+  const opposingActionsFlat = [...opposingActionsMap.values()].flat(1);
 
   // terminal game state
   if (playerActionsFlat.length === 0) return Number.NEGATIVE_INFINITY;
   if (opposingActionsFlat.length === 0) return Number.POSITIVE_INFINITY;
 
-  let value = 0;
-  // every move counts as 1 point
-  value += Object.keys(playerActionsMap).length;
-  // go through each move and see how good the effect of performing that move is
-
-  const successors = state.getSuccessors();
-  successors.forEach(([succ, action]) => {
-    if (!actionIsMoveChecker(action)) return;
-    const { to } = action;
-    const succBlackLegalActionsMap = succ.getBlackLegalActions();
-    const succWhiteLegalActionsMap = succ.getWhiteLegalActions();
-    const succPlayerActionsMap =
-      player === BLACK ? succBlackLegalActionsMap : succWhiteLegalActionsMap;
-    const succOpposingActionsMap =
-      player === BLACK ? succWhiteLegalActionsMap : succBlackLegalActionsMap;
-    // check status of end position of moving checker
-    const checkerThreatening = checkerIsThreatening(succ, to, player);
-    const checkerThreatened = checkerIsThreatened(succ, to, player);
-    if (checkerThreatening && !checkerThreatened) value += 3;
-    else if (checkerThreatening && checkerThreatened) value -= 1;
-    else if (!checkerThreatening && checkerThreatened) value -= 2;
-    else value += 1;
-  });
-  return value;
+  return playerActionsFlat.length - opposingActionsFlat.length;
 };
 
 export const boardValue3 = (state: Konane, player: Player) => {
   const blackLegalActionsMap = state.getBlackLegalActions();
   const whiteLegalActionsMap = state.getWhiteLegalActions();
+
   const playerActionsMap =
     player === BLACK ? blackLegalActionsMap : whiteLegalActionsMap;
   const opposingActionsMap =
     player === BLACK ? whiteLegalActionsMap : blackLegalActionsMap;
 
-  const playerActionsFlat = Object.values(playerActionsMap).flat(1);
-  const opposingActionsFlat = Object.values(opposingActionsMap).flat(1);
+  // terminal game state
+  if (playerActionsMap.size === 0) return Number.NEGATIVE_INFINITY;
+  if (opposingActionsMap.size === 0) return Number.POSITIVE_INFINITY;
 
-  const successors = state.getSuccessors();
+  const successors =
+    player === BLACK ? state.getBlackSuccessors() : state.getWhiteSuccessors();
 
-  // { [x,y]: Konane ... }
-  const successorsMap: { [key: string]: Konane } = Object.fromEntries(
-    successors.map((x) => x.reverse())
+  // { action: Konane ... }
+
+  const successorsMap: Map<String, Konane> = new Map(
+    successors.map(([konane, action]) => [actionToString(action), konane])
   );
 
-  // terminal game state
-  if (playerActionsFlat.length === 0) return Number.NEGATIVE_INFINITY;
-  if (opposingActionsFlat.length === 0) return Number.POSITIVE_INFINITY;
-
   // { [x,y]: -inf ...}
-  const cellBestActionValue: { [key: string]: number } = Object.fromEntries(
-    Object.entries(playerActionsMap).map(([cellPos, _]) => [
+  const cellBestActionValue = new Map(
+    [...playerActionsMap.entries()].map(([cellPos, _]) => [
       cellPos,
       Number.NEGATIVE_INFINITY,
     ])
   );
 
-  Object.entries(playerActionsMap).forEach(([cellPos, actionsFromPos]) => {
+  playerActionsMap.forEach((actionsFromPos, cellPos) => {
     actionsFromPos.forEach((action) => {
       if (!actionIsMoveChecker(action)) return;
+      const actionSuccessor = successorsMap.get(actionToString(action));
+      if (!actionSuccessor) return;
       let actionValue = 0;
       const { to, from } = action;
 
-      // if corner piece award 5 points
-      if (isCorner(from)) actionValue += 3;
-      if (checkerIsThreatened(state, from, player)) {
-        // checker can also be eatened right now
-        actionValue -= 3;
-      } else {
-        // checker is safe
-        actionValue += 2;
-      }
-
+      const atCorner = isCorner(from);
+      const threatened = checkerIsThreatened(state, from, player);
       const threateningInSucc = checkerIsThreatening(
-        successorsMap[action.toString()],
+        actionSuccessor,
         to,
         player
       );
-      const threatenedInSucc = checkerIsThreatened(
-        successorsMap[action.toString()],
-        to,
-        player
-      );
+      const threatenedInSucc = checkerIsThreatened(actionSuccessor, to, player);
 
-      if (threateningInSucc && !threatenedInSucc) {
-        // leads to another safe move
+      // if corner piece award 3 points
+      // if (atCorner) actionValue += 3;
+
+      if (threatened && threateningInSucc && !threatenedInSucc) {
+        // take away opponent's move and get a move
+        actionValue += 4;
+      } else if (!threatened && threateningInSucc && !threatenedInSucc) {
+        // move that gets a move by choice
         actionValue += 2;
-      } else if (threateningInSucc && threatenedInSucc) {
-        actionValue += 0;
-      } else if (!threateningInSucc && threatenedInSucc) {
+      } else if (threatened && threateningInSucc && threatenedInSucc) {
+        // trading piece possibly
         actionValue -= 2;
+      } else if (!threatened && threateningInSucc && threatenedInSucc) {
+        // putting piece in danger by choice
+        actionValue -= 3;
+      } else if (threatened && !threateningInSucc && threatenedInSucc) {
+        // gave opponent move, but take their checker
+        actionValue -= 2;
+      } else if (!threatened && !threateningInSucc && threatenedInSucc) {
+        // give opponent move by choice
+        actionValue -= 4;
+      } else if (threatened && !threateningInSucc && !threatenedInSucc) {
+        // take away opponent move and get stranded
+        actionValue += 2;
       } else {
+        // move to get stranded by choice
         actionValue += 1;
       }
-      cellBestActionValue[cellPos.toString()] = Math.max(
-        actionValue,
-        cellBestActionValue[cellPos.toString()]
+      // if (verbose) console.log(actionValue);
+      //count how many
+      cellBestActionValue.set(
+        cellPos,
+        Math.max(actionValue, cellBestActionValue.get(cellPos)!)
       );
     });
   });
 
-  const value = Object.values(cellBestActionValue).reduce(
+  const value = [...cellBestActionValue.values()].reduce(
     (acc, cur) => acc + cur,
-    Object.keys(cellBestActionValue).length
+    0
   );
 
-  return value / Object.keys(cellBestActionValue).length;
+  return value;
+};
+
+export const boardValueDiff = (state: Konane, player: Player) => {
+  const opposingPlayer = oppositeColor(player);
+  return boardValue3(state, player) - boardValue3(state, opposingPlayer);
+};
+
+export const movableRatio = (state: Konane, player: Player) => {
+  const blackLegalActionsMap = state.getBlackLegalActions();
+  const whiteLegalActionsMap = state.getWhiteLegalActions();
+  const playerActionsMap =
+    player === BLACK ? blackLegalActionsMap : whiteLegalActionsMap;
+  const opposingActionsMap =
+    player === BLACK ? whiteLegalActionsMap : blackLegalActionsMap;
+
+  const playerMovableCheckers = playerActionsMap.size;
+  const opposingMovableCheckers = opposingActionsMap.size;
+
+  if (playerMovableCheckers === 0) return Number.NEGATIVE_INFINITY;
+  if (opposingMovableCheckers === 0) return Number.POSITIVE_INFINITY;
+
+  return playerMovableCheckers / opposingMovableCheckers;
+};
+
+export const weightedRatio = (state: Konane, player: Player) => {
+  const blackLegalActionsMap = state.getBlackLegalActions();
+  const whiteLegalActionsMap = state.getWhiteLegalActions();
+  const playerActionsMap =
+    player === BLACK ? blackLegalActionsMap : whiteLegalActionsMap;
+  const opposingActionsMap =
+    player === BLACK ? whiteLegalActionsMap : blackLegalActionsMap;
+
+  const playerMovableCheckers = playerActionsMap.size;
+  const opposingMovableCheckers = opposingActionsMap.size;
+
+  if (playerMovableCheckers === 0) return Number.NEGATIVE_INFINITY;
+  if (opposingMovableCheckers === 0) return Number.POSITIVE_INFINITY;
+
+  return boardValue3(state, player) / boardValue3(state, oppositeColor(player));
 };
