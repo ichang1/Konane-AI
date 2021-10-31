@@ -6,7 +6,7 @@ import { konaneDifficulties } from "../konane/KonaneGameUtils";
 import styles from "../styles/pages/index.module.scss";
 import { oddIndexElements, specialCssClasses } from "../utils/misc";
 
-const ANIMATION_SPEED = 1100;
+const ANIMATION_SPEED = 1250;
 
 const Home: NextPage = () => {
   const singleJumpAnimationRef = useRef<(HTMLDivElement | null)[]>(
@@ -19,19 +19,27 @@ const Home: NextPage = () => {
     [...Array(7)].map((_) => null)
   );
 
+  /**
+   * Animates black checker capturing white checkers
+   * @param cellElementArr array of div elements
+   */
   const runJumpAnimations = (cellElementArr: (HTMLDivElement | null)[]) => {
     const firstCellElement = cellElementArr[0];
     const lastCellElement = cellElementArr[cellElementArr.length - 1];
     const whiteCellElements = oddIndexElements(cellElementArr);
+    // clear checkers and special border classes
     cellElementArr.forEach((el) => {
       if (!el) return;
       el.classList.remove(...specialCssClasses);
       el.firstElementChild?.classList.remove("checker-black", "checker-white");
     });
+    // animations in order
+    // callback for animation and callback for delay based on index
     const animations: [() => void, (idx: number) => number][] = [
       [
         () => {
           if (!firstCellElement) return;
+          // add checkers
           firstCellElement.firstElementChild?.classList.add("checker-black");
           whiteCellElements.forEach((el) => {
             if (!el) return;
@@ -43,6 +51,7 @@ const Home: NextPage = () => {
       [
         () => {
           if (!firstCellElement || !lastCellElement) return;
+          // add starting and end cell border
           firstCellElement.classList.add("cell-border-black-secondary");
           lastCellElement.classList.add("rotating-cell-border-black-secondary");
         },
@@ -51,10 +60,12 @@ const Home: NextPage = () => {
       [
         () => {
           if (!firstCellElement || !lastCellElement) return;
+          // remove starting and ending cell border
           firstCellElement.classList.remove("cell-border-black-secondary");
           lastCellElement.classList.remove(
             "rotating-cell-border-black-secondary"
           );
+          // add destination border signifying move
           lastCellElement.classList.add("cell-border-black-secondary");
         },
         (idx: number) => idx * ANIMATION_SPEED,
@@ -62,11 +73,15 @@ const Home: NextPage = () => {
       [
         () => {
           if (!firstCellElement || !lastCellElement) return;
+          // remove checker from start
           firstCellElement.firstElementChild?.classList.remove("checker-black");
+          // remove intermediate white checkers
           whiteCellElements.forEach((el) => {
             if (!el) return;
             el.firstElementChild?.classList.remove("checker-white");
           });
+          // add black checker to end cell
+          lastCellElement.classList.remove("cell-border-black-secondary");
           lastCellElement.firstElementChild?.classList.add("checker-black");
         },
         (idx: number) => idx * ANIMATION_SPEED,
@@ -110,7 +125,7 @@ const Home: NextPage = () => {
           <li>Players decide which colors to play, black or white</li>
           <li>
             Black starts first and must remove one of their pieces from the
-            middle of the board.
+            middle of the 8 x 8 board.
           </li>
           <li>
             White then removes one of their pieces horizontally adjacent to the

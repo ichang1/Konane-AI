@@ -1,11 +1,12 @@
 $difficulty-button-background: #202020;
 
 .container {
-  padding: 1em 3em;
+  padding: 1em 4em;
 }
 
 .rules-list {
   max-width: 50em;
+  line-height: 1.5em;
 }
 
 .konane-board-cell {
@@ -25,6 +26,9 @@ $difficulty-button-background: #202020;
   display: flex;
   justify-content: flex-start;
   margin: 1.5em;
+  border: var(--board-border-width) solid black;
+  height: max-content;
+  width: max-content;
 }
 
 .play-difficulty-buttons-container {

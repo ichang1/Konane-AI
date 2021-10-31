@@ -1,18 +1,19 @@
 $sidebar-z-index: 999;
-$arrow-self-offset: 15%;
-$arrow-size: 0.8em;
+$arrow-self-offset: 20%;
+$arrow-size: 1em;
 
 .left-sidebar,
 .right-sidebar {
-  height: 100%;
+  height: calc(100vh - 2px);
   width: max-content;
-  position: absolute;
+  position: fixed;
   z-index: $sidebar-z-index;
   transition: all 1s ease-in-out;
   background: lightgray;
   top: 0;
   padding: 1em 2em;
   margin: 0;
+  border: 4px solid green;
   & > *:not(:last-child) {
     margin-bottom: 1em;
   }
@@ -29,18 +30,14 @@ $arrow-size: 0.8em;
     border-top: $arrow-size solid transparent;
     border-bottom: $arrow-size solid transparent;
   }
-  // &:hover {
-  //   transform: translateX(0%);
-  //   &::after {
-  //     transform: rotateY(180deg)
-  //       translateX(calc(2 * $arrow-size - $arrow-self-offset));
-  //   }
-  // }
 }
 
 .left-sidebar {
   transform: translateX(calc(-100% + $arrow-size));
   left: 0;
+  border-top-right-radius: 0.5em;
+  border-bottom-right-radius: 0.5em;
+  border-left: none;
   &::after {
     left: 100%;
     border-left: $arrow-size solid black;
@@ -59,6 +56,9 @@ $arrow-size: 0.8em;
   float: right;
   transform: translateX(calc(100% - $arrow-size));
   right: 0;
+  border-top-left-radius: 0.5em;
+  border-bottom-left-radius: 0.5em;
+  border-right: none;
   &::after {
     right: calc(100% - 0.75 * $arrow-size);
     border-left: $arrow-size solid transparent;
@@ -85,6 +85,7 @@ $arrow-size: 0.8em;
     height: max-content;
     width: max-content;
     font-weight: bold;
+    font-size: 1.25em;
     &::before {
       transition: all 0.5s ease-in-out;
       bottom: 3px;
@@ -92,7 +93,7 @@ $arrow-size: 0.8em;
       display: block;
       left: 0%;
       content: "";
-      height: 2px;
+      height: 3px;
       width: 0%;
       background: green;
     }

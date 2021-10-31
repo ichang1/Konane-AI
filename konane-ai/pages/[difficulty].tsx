@@ -64,6 +64,8 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
 
   /**
    * returns an onclick handler based on an move Action
+   * for moving a checker, the onclick will focus on a cell and
+   * draw a dashed border on the possible destination cells
    */
   const getMoveCheckerClickHandler = (
     cell: [number, number],
@@ -185,8 +187,8 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
     if (playerToPlay !== human) return;
     if (!gameRef.current) return;
     const game = gameRef.current;
-    const playerLegalActions = game.getLegalHumanActions();
-    playerLegalActions.forEach((actionsFromCell, cell) => {
+    const playerLegalActionsMap = game.getLegalHumanActions();
+    playerLegalActionsMap.forEach((actionsFromCell, cell) => {
       addCellSpecialProps(cell, actionsFromCell);
     });
   };
@@ -332,14 +334,19 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   const escapeActiveActionHandler = () => {
     if (!activeAction) return;
     setActiveAction(null);
-    setActiveCell(null);
+    // setActiveCell(null);
     if (actionIsMoveChecker(activeAction) && activeCell) {
       const game = gameRef.current;
       if (!game) return;
-      const legalHumanActions = game.getLegalHumanActions();
+      const legalHumanActionsMap = game.getLegalHumanActions();
+      const activeCellKeyValueArr = [...legalHumanActionsMap.entries()].find(
+        (k, v) => k.toString() === activeCell.toString()
+      );
+      if (!activeCellKeyValueArr) return;
+      const [_, activeCellLegalActions] = activeCellKeyValueArr;
       const thisCellClickHandler = getMoveCheckerClickHandler(
         activeCell,
-        legalHumanActions.get(activeCell) as MoveChecker[]
+        activeCellLegalActions as MoveChecker[]
       );
       if (thisCellClickHandler) thisCellClickHandler();
     } else {
@@ -382,8 +389,8 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
       // const whiteLegalActionsMap = game.konane.getWhiteLegalActions();
       // console.log(blackLegalActionsMap);
       // console.log(whiteLegalActionsMap);
-      console.log(boardValue3(game.konane, oppositeColor(human)), "computer");
-      console.log(boardValue3(game.konane, human), "human");
+      // console.log(boardValue3(game.konane, oppositeColor(human)), "computer");
+      // console.log(boardValue3(game.konane, human), "human");
       // human's turn
       const playerLegalActions = game.getLegalHumanActions();
       if (playerLegalActions.size === 0) {
@@ -423,7 +430,11 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
     <div
       className={styles.container}
       onKeyDown={(e) => {
-        if (e.key === "Escape") escapeActiveCellHandler();
+        if (e.key === "Escape" && activeAction) {
+          escapeActiveActionHandler();
+        } else if (e.key === "Escape" && activeCell) {
+          escapeActiveCellHandler();
+        }
       }}
       tabIndex={0}
     >
