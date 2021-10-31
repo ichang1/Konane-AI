@@ -21,28 +21,16 @@ import SideBar from "../components/SideBar/SideBar";
 import KonaneGame, { boardValue3 } from "../konane/KonaneGame";
 import LoadingIndicator from "../components/LoadingIndicator/LoadingIndicator";
 import { konaneDifficulties, oppositeColor } from "../konane/KonaneGameUtils";
+import { specialCssClasses } from "../utils/misc";
 
 const n = 8;
 const emptyBoard = [...Array(n)].map((_) => [...Array(n)]);
 
-const xCellColor = "#ab4e52";
-const oCellColor = "#703642";
 const ANIMATION_SPEED = 1100;
 
 interface PlayKonaneProps {
   difficulty: string;
 }
-
-const specialCssClasses = [
-  "rotating-cell-border-black-primary",
-  "rotating-cell-border-white-primary",
-  "rotating-cell-border-black-secondary",
-  "rotating-cell-border-white-secondary",
-  "cell-border-black-primary",
-  "cell-border-white-primary",
-  "cell-border-black-secondary",
-  "cell-border-white-secondary",
-];
 
 const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   const [human, setHuman] = useState<Player | null>(null);
@@ -623,7 +611,10 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
               <button
                 className={styles["konane-board-cell"]}
                 style={{
-                  background: rowN % 2 === colN % 2 ? xCellColor : oCellColor,
+                  background:
+                    rowN % 2 === colN % 2
+                      ? "var(--black-cell-color)"
+                      : "var(--white-cell-color)",
                 }}
                 key={`row${rowN}-col${colN}`}
                 value={`${rowN}-${colN}`}

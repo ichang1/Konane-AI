@@ -1,5 +1,32 @@
 $difficulty-button-background: #202020;
 
+.container {
+  padding: 1em 3em;
+}
+
+.rules-list {
+  max-width: 50em;
+}
+
+.konane-board-cell {
+  padding: 0;
+  width: var(--cell-size);
+  height: var(--cell-size);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  &:focus {
+    outline: none;
+  }
+}
+
+.cell-animation {
+  display: flex;
+  justify-content: flex-start;
+  margin: 1.5em;
+}
+
 .play-difficulty-buttons-container {
 }
 

@@ -186,8 +186,6 @@ const checkerIsThreatened = (
   checkerPos: [number, number],
   player: Player
 ) => {
-  console.table(state.board);
-  console.log(checkerPos);
   const opposingActionsMap =
     player === BLACK
       ? state.getWhiteLegalActions()
@@ -237,7 +235,22 @@ export const simple = (state: Konane, player: Player) => {
   return playerActionsFlat.length - opposingActionsFlat.length;
 };
 
-export const boardValue3 = (state: Konane, player: Player) => {
+export interface Weights {
+  one: number;
+  two: number;
+  three: number;
+  four: number;
+  five: number;
+  six: number;
+  seven: number;
+  eight: number;
+}
+
+export const boardValue3 = (
+  state: Konane,
+  player: Player,
+  weights: Weights | null = null
+) => {
   const blackLegalActionsMap = state.getBlackLegalActions();
   const whiteLegalActionsMap = state.getWhiteLegalActions();
 
@@ -269,7 +282,10 @@ export const boardValue3 = (state: Konane, player: Player) => {
 
   playerActionsMap.forEach((actionsFromPos, cellPos) => {
     actionsFromPos.forEach((action) => {
-      if (!actionIsMoveChecker(action)) return;
+      if (!actionIsMoveChecker(action)) {
+        cellBestActionValue.set(cellPos, 0);
+        return;
+      }
       const actionSuccessor = successorsMap.get(actionToString(action));
       if (!actionSuccessor) return;
       let actionValue = 0;
@@ -289,30 +305,29 @@ export const boardValue3 = (state: Konane, player: Player) => {
 
       if (threatened && threateningInSucc && !threatenedInSucc) {
         // take away opponent's move and get a move
-        actionValue += 4;
+        actionValue += weights?.one || -1.5;
       } else if (!threatened && threateningInSucc && !threatenedInSucc) {
         // move that gets a move by choice
-        actionValue += 2;
+        actionValue += weights?.two || 3;
       } else if (threatened && threateningInSucc && threatenedInSucc) {
         // trading piece possibly
-        actionValue -= 2;
+        actionValue += weights?.three || -2;
       } else if (!threatened && threateningInSucc && threatenedInSucc) {
         // putting piece in danger by choice
-        actionValue -= 3;
+        actionValue += weights?.four || -0.5;
       } else if (threatened && !threateningInSucc && threatenedInSucc) {
         // gave opponent move, but take their checker
-        actionValue -= 2;
+        actionValue += weights?.five || -2;
       } else if (!threatened && !threateningInSucc && threatenedInSucc) {
         // give opponent move by choice
-        actionValue -= 4;
+        actionValue += weights?.six || -1;
       } else if (threatened && !threateningInSucc && !threatenedInSucc) {
         // take away opponent move and get stranded
-        actionValue += 2;
+        actionValue += weights?.seven || -1;
       } else {
         // move to get stranded by choice
-        actionValue += 1;
+        actionValue += weights?.eight || 2;
       }
-      // if (verbose) console.log(actionValue);
       //count how many
       cellBestActionValue.set(
         cellPos,
@@ -329,9 +344,16 @@ export const boardValue3 = (state: Konane, player: Player) => {
   return value;
 };
 
-export const boardValueDiff = (state: Konane, player: Player) => {
+export const boardValueDiff = (
+  state: Konane,
+  player: Player,
+  weights: Weights | null = null
+) => {
   const opposingPlayer = oppositeColor(player);
-  return boardValue3(state, player) - boardValue3(state, opposingPlayer);
+  return (
+    boardValue3(state, player, weights) -
+    boardValue3(state, opposingPlayer, weights)
+  );
 };
 
 export const movableRatio = (state: Konane, player: Player) => {

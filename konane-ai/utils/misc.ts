@@ -20,3 +20,22 @@ export const hash = (obj: any) => {
   }
   return hash;
 };
+
+export const specialCssClasses = [
+  "rotating-cell-border-black-primary",
+  "rotating-cell-border-white-primary",
+  "rotating-cell-border-black-secondary",
+  "rotating-cell-border-white-secondary",
+  "cell-border-black-primary",
+  "cell-border-white-primary",
+  "cell-border-black-secondary",
+  "cell-border-white-secondary",
+];
+
+export const oddIndexElements = <T>(arr: T[]) => {
+  const elements: T[] = [];
+  arr.forEach((el, idx) => {
+    if (idx % 2 === 1) elements.push(el);
+  });
+  return elements;
+};
