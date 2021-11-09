@@ -15,12 +15,12 @@ import {
   RemoveChecker,
   MoveChecker,
 } from "../konane/KonaneUtils";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Modal from "../components/Modal/Modal";
 import SideBar from "../components/SideBar/SideBar";
-import KonaneGame, { boardValue3 } from "../konane/KonaneGame";
+import KonaneGame from "../konane/KonaneGame";
 import LoadingIndicator from "../components/LoadingIndicator/LoadingIndicator";
-import { konaneDifficulties, oppositeColor } from "../konane/KonaneGameUtils";
+import { boardValueDiff, konaneDifficulties } from "../konane/KonaneGameUtils";
 import { specialCssClasses } from "../utils/misc";
 
 const n = 8;
@@ -92,6 +92,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
           playerToPlay === BLACK
             ? "rotating-cell-border-black-secondary"
             : "rotating-cell-border-white-secondary";
+        `  `;
         moveToCellElement.classList.add(dashedBorderCls);
         moveToCellElement.style.cursor = "pointer";
         moveToCellElement.onclick = () => {
@@ -364,8 +365,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
 
   useEffect(() => {
     const history = historyRef.current;
-    if (!history) return;
-    history.innerHTML = "";
+    if (history) history.innerHTML = "";
   }, []);
 
   useEffect(() => {
@@ -384,23 +384,12 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
     if (!game) return;
     removeAllCellsSpecialProps();
     if (playerToPlay === human) {
-      // console.log(game.konane);
-      // const blackLegalActionsMap = game.konane.getBlackLegalActions();
-      // const whiteLegalActionsMap = game.konane.getWhiteLegalActions();
-      // console.log(blackLegalActionsMap);
-      // console.log(whiteLegalActionsMap);
-      // console.log(boardValue3(game.konane, oppositeColor(human)), "computer");
-      // console.log(boardValue3(game.konane, human), "human");
+      console.log(boardValueDiff(game.konane, human!));
       // human's turn
       const playerLegalActions = game.getLegalHumanActions();
       if (playerLegalActions.size === 0) {
         // human has no moves left, human loses
         setHumanWins(false);
-        // console.log(
-        //   `human: ${human} loses, computer: ${
-        //     human === BLACK ? WHITE : BLACK
-        //   } wins`
-        // );
       } else {
         addPlayerCellsSpecialProps();
       }
@@ -410,11 +399,6 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
       if (!bestAction) {
         // computer has no moves left, human wins
         setHumanWins(true);
-        // console.log(
-        //   `human: ${human} wins, computer: ${
-        //     human === BLACK ? WHITE : BLACK
-        //   } loses`
-        // );
       } else {
         animateAndResolveAction(bestAction);
       }

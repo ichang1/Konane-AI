@@ -1,4 +1,3 @@
-import { hash } from "../utils/misc";
 import {
   Action,
   BLACK,
@@ -341,9 +340,5 @@ export default class Konane {
   toString() {
     const s = this.board.toString() + " " + this.turn;
     return s;
-  }
-
-  hash() {
-    return hash(this.toString());
   }
 }

@@ -10,10 +10,12 @@
     "run-ts-node": "ts-node --project ./tsconfig.node.json"
   },
   "dependencies": {
+    "comlink": "^4.3.1",
     "next": "11.1.2",
     "react": "17.0.2",
     "react-dom": "17.0.2",
-    "sass": "^1.42.1"
+    "sass": "^1.42.1",
+    "worker-plugin": "^5.0.1"
   },
   "devDependencies": {
     "@types/react": "17.0.29",

@@ -5,15 +5,7 @@ import {
   Player,
   WHITE,
 } from "./KonaneUtils";
-import KonaneGame, {
-  boardValue3,
-  boardValueDiff,
-  getKonaneStaticEval,
-  movableRatio,
-  simple,
-  weightedRatio,
-  Weights,
-} from "./KonaneGame";
+import KonaneGame, { getKonaneStaticEval } from "./KonaneGame";
 import { MinMax, MinMaxNode } from "../utils/MinMax";
 import Konane from "./Konane";
 import { randInt } from "../utils/misc";
@@ -23,6 +15,9 @@ import {
   oppositeColor,
   konaneDifficulties,
   getKonaneSuccessors,
+  Weights,
+  simple2,
+  boardValueDiff,
 } from "./KonaneGameUtils";
 
 class KonaneGameTest extends KonaneGame {
@@ -48,8 +43,9 @@ class KonaneGameTest extends KonaneGame {
     );
     return this.minMaxHandlerHuman.minMaxAlphaBeta(
       testNode,
-      computerDifficultyDepths.hard,
+      computerDifficultyDepths.grandmaster,
       getKonaneStaticEval(this.human, (state: Konane, player: Player) =>
+        // simple2(state, player)
         boardValueDiff(state, player, this.weights)
       )
     );
@@ -76,7 +72,7 @@ const roles = {
   ...Object.fromEntries(Object.entries(temp).map(([k, v]) => [v, k])),
 };
 
-const runningTrials = true;
+const runningTrials = false;
 const TRIALS = 100;
 
 if (runningTrials) {
@@ -85,14 +81,14 @@ if (runningTrials) {
   const negativeWeights = [-5, -4, -3, -2, -1];
   let bestWeightsRatio = null;
   let bestWeights = null;
-  for (let one of possibleWeights) {
-    for (let two of positiveWeights) {
-      for (let three of possibleWeights) {
-        for (let four of possibleWeights) {
-          for (let five of possibleWeights) {
-            for (let six of possibleWeights) {
-              for (let seven of possibleWeights) {
-                for (let eight of positiveWeights) {
+  for (let eight of possibleWeights) {
+    for (let seven of positiveWeights) {
+      for (let six of possibleWeights) {
+        for (let five of possibleWeights) {
+          for (let four of possibleWeights) {
+            for (let three of possibleWeights) {
+              for (let two of possibleWeights) {
+                for (let one of positiveWeights) {
                   const weights = {
                     one,
                     two,
@@ -103,25 +99,27 @@ if (runningTrials) {
                     seven,
                     eight,
                   };
-                  console.log("testing:", weights);
-                  const winRates = runTrials(TRIALS);
-                  if (!winRates) continue;
-                  const [humanWins, computerWins] = winRates;
-                  if (!bestWeightsRatio) {
-                    bestWeightsRatio = [humanWins, computerWins];
-                    bestWeights = weights;
-                    console.log(bestWeightsRatio);
-                    console.log(bestWeights);
-                  } else {
-                    const [curBestHumanWins, curBestComputerWins] =
-                      bestWeightsRatio;
-                    if (curBestHumanWins < humanWins) {
-                      bestWeightsRatio = [humanWins, computerWins];
-                      bestWeights = weights;
-                      console.log(bestWeightsRatio);
-                      console.log(bestWeights);
-                    }
-                  }
+                  // console.log("testing:", weights);
+                  const humanWinsBoth = runBoth(weights);
+                  if (humanWinsBoth) console.log(weights);
+                  // const winRates = runTrials(TRIALS, weights);
+                  // if (!winRates) continue;
+                  // const [humanWins, computerWins] = winRates;
+                  // if (!bestWeightsRatio) {
+                  //   bestWeightsRatio = [humanWins, computerWins];
+                  //   bestWeights = weights;
+                  //   console.log(bestWeightsRatio);
+                  //   console.log(bestWeights);
+                  // } else {
+                  //   const [curBestHumanWins, curBestComputerWins] =
+                  //     bestWeightsRatio;
+                  //   if (curBestHumanWins < humanWins) {
+                  //     bestWeightsRatio = [humanWins, computerWins];
+                  //     bestWeights = weights;
+                  //     console.log(bestWeightsRatio);
+                  //     console.log(bestWeights);
+                  //   }
+                  // }
                 }
               }
             }
@@ -133,6 +131,7 @@ if (runningTrials) {
   console.log(bestWeightsRatio);
   console.log(bestWeights);
 } else {
+  // runTrials(TRIALS, null, true);
   const weights = {
     one: -5,
     two: -5,
@@ -143,33 +142,35 @@ if (runningTrials) {
     seven: -5,
     eight: -5,
   };
-  const game = new KonaneGameTest(human, konaneDifficulties.novice, weights);
-  for (let i = 0; i < 100; i++) {
-    const playerToPlay = game.playerToPlay;
-    if (playerToPlay === human) {
-      const bestHumanAction = game.getBestHumanAction();
-      if (bestHumanAction === null) {
-        // computer lost, no moves left
-        console.log("human LOSES! computer WINS");
-        break;
-      } else {
-        console.log("human plays:", bestHumanAction);
-        game.applyAction(bestHumanAction);
-        console.table(game.board);
-      }
-    } else {
-      const bestComputerAction = game.getBestComputerAction();
-      if (bestComputerAction === null) {
-        // computer lost, no moves left
-        console.log("human WINS! computer LOSES");
-        break;
-      } else {
-        console.log("computer plays:", bestComputerAction);
-        game.applyAction(bestComputerAction);
-        console.table(game.board);
-      }
-    }
-  }
+  runBoth(null, true);
+  // const game = new KonaneGameTest(human, konaneDifficulties.grandmaster);
+  // for (let i = 0; i < 100; i++) {
+  //   const playerToPlay = game.playerToPlay;
+  //   if (playerToPlay === human) {
+  //     const bestHumanAction = game.getBestHumanAction();
+  //     // const bestHumanAction = game.getRandomHumanAction();
+  //     if (bestHumanAction === null) {
+  //       // computer lost, no moves left
+  //       console.log("human LOSES! computer WINS");
+  //       break;
+  //     } else {
+  //       console.log("human plays:", bestHumanAction);
+  //       game.applyAction(bestHumanAction);
+  //       console.table(game.board);
+  //     }
+  //   } else {
+  //     const bestComputerAction = game.getBestComputerAction();
+  //     if (bestComputerAction === null) {
+  //       // computer lost, no moves left
+  //       console.log("human WINS! computer LOSES");
+  //       break;
+  //     } else {
+  //       console.log("computer plays:", bestComputerAction);
+  //       game.applyAction(bestComputerAction);
+  //       console.table(game.board);
+  //     }
+  //   }
+  // }
 }
 
 // ===========================================
@@ -180,25 +181,31 @@ if (runningTrials) {
 // weighted ratio > movable checker ratio
 // wighted ratio ? weight diff
 
-function runTrials(trials: number, weights: Weights | null = null) {
+function runTrials(
+  trials: number,
+  weights: Weights | null = null,
+  verbose: boolean | null = null
+) {
   let humanWins = 0;
   let computerWins = 0;
   for (let trial = 0; trial < trials; trial++) {
     if (
       humanWins * computerWins > 0 &&
-      trial > 20 &&
+      trial > 30 &&
       humanWins / computerWins < 2
     )
       return null;
-    const game = new KonaneGameTest(human, konaneDifficulties.novice, weights);
+    const game = new KonaneGameTest(human, konaneDifficulties.hard, weights);
     for (let i = 0; i < 100; i++) {
       const playerToPlay = game.playerToPlay;
       if (playerToPlay === human) {
+        // const bestHumanAction = game.getRandomHumanAction();
         const bestHumanAction = game.getBestHumanAction();
         if (bestHumanAction === null) {
           // human lost, no moves left
           computerWins += 1;
-          // console.log("human LOSES! computer WINS", trial, game.turn);
+          if (verbose)
+            console.log("human LOSES! computer WINS", trial, game.turn);
           break;
         } else {
           // console.log("human plays:", bestHumanAction);
@@ -210,7 +217,8 @@ function runTrials(trials: number, weights: Weights | null = null) {
         if (bestComputerAction === null) {
           // computer lost, no moves left
           humanWins += 1;
-          // console.log("human WINS! computer LOSES", trial, game.turn);
+          if (verbose)
+            console.log("human WINS! computer LOSES", trial, game.turn);
           break;
         } else {
           // console.log("computer plays:", bestComputerAction);
@@ -220,6 +228,59 @@ function runTrials(trials: number, weights: Weights | null = null) {
       }
     }
   }
+  if (verbose) console.log("human:", humanWins, "computer:", computerWins);
   return [humanWins, computerWins];
-  // console.log("human:", humanWins, "computer:", computerWins);
+}
+
+function runWeightTrials() {}
+
+function runBoth(
+  weights: Weights | null = null,
+  verbose: boolean | null = null
+) {
+  const [blackHumanWin, _a] = run(BLACK, weights, verbose);
+  const [whiteHumanWin, _b] = run(WHITE, weights, verbose);
+  return blackHumanWin + whiteHumanWin === 2;
+}
+
+function run(
+  player: Player,
+  weights: Weights | null = null,
+  verbose: boolean | null = null
+) {
+  const game = new KonaneGameTest(
+    player,
+    konaneDifficulties.grandmaster,
+    weights
+  );
+  for (let i = 0; i < 100; i++) {
+    const playerToPlay = game.playerToPlay;
+    if (playerToPlay === human) {
+      // const bestHumanAction = game.getRandomHumanAction();
+      const bestHumanAction = game.getBestHumanAction();
+      if (bestHumanAction === null) {
+        // human lost, no moves left
+        if (verbose) console.log("human LOSES! computer WINS", game.turn);
+        return [0, 1];
+        break;
+      } else {
+        // console.log("human plays:", bestHumanAction);
+        game.applyAction(bestHumanAction);
+        // console.table(game.board);
+      }
+    } else {
+      const bestComputerAction = game.getBestComputerAction();
+      if (bestComputerAction === null) {
+        // computer lost, no moves left
+        if (verbose) console.log("human WINS! computer LOSES", game.turn);
+        return [1, 0];
+        break;
+      } else {
+        // console.log("computer plays:", bestComputerAction);
+        game.applyAction(bestComputerAction);
+        // console.table(game.board);
+      }
+    }
+  }
+  return [0, 0];
 }
