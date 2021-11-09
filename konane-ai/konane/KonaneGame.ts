@@ -12,6 +12,7 @@ import {
   boardValueDiff,
   simple2,
   simple,
+  konaneSuccessorsCmp,
 } from "./KonaneGameUtils";
 import {
   Player,
@@ -65,6 +66,7 @@ export default class KonaneGame {
       "max",
       0,
       null
+      // konaneSuccessorsCmp
     );
     switch (this.difficulty) {
       case konaneDifficulties.novice:
@@ -90,18 +92,6 @@ export default class KonaneGame {
           minMaxNode,
           computerDifficultyDepths.hard,
           getKonaneStaticEval(this.computer, boardValueDiff)
-        );
-      case konaneDifficulties.challenger:
-        return this.minMaxHandler.minMaxAlphaBeta(
-          minMaxNode,
-          computerDifficultyDepths.challenger,
-          getKonaneStaticEval(this.computer, boardValueDiff)
-        );
-      case konaneDifficulties.grandmaster:
-        return this.minMaxHandler.minMaxAlphaBeta(
-          minMaxNode,
-          computerDifficultyDepths.grandmaster,
-          getKonaneStaticEval(this.computer, simple2)
         );
       default:
         return null;

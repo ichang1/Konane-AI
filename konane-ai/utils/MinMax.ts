@@ -105,10 +105,11 @@ export class MinMax<T extends GenericWithToString, V> {
       const nodeStateStr = node.state.toString();
       const nodeSuccessors =
         this.successorCache.get(nodeStateStr) || node.getSuccessors();
-      if (!this.successorCache.has(nodeStateStr))
+      if (!this.successorCache.has(nodeStateStr)) {
         this.successorCache.set(nodeStateStr, nodeSuccessors);
+      }
       if (depth >= maxDepth || nodeSuccessors.length === 0) {
-        console.log(staticEvals++);
+        // console.log(staticEvals++);
         const stateEval =
           this.evalCache.get(nodeStateStr) || staticEvalFn(node.state);
         if (!this.evalCache.has(nodeStateStr))
@@ -161,31 +162,33 @@ export class MinMaxNode<T, V> {
   depth: number;
   // move to get to this.state
   move: V;
+  // optional reorder function
+  reorderCmp:
+    | ((state: T, successor1: [T, V], successor2: [T, V]) => number)
+    | null;
   // alpha beta values
   alpha: number;
   beta: number;
-  // optional reorder function
-  reorderFn: ((successor1: [T, V], successor2: [T, V]) => number) | null;
   constructor(
     state: T,
     getStateSuccessors: (state: T) => [T, V][],
     type: MinMaxNodeType,
     depth: number,
     move: V,
+    reorderCmp:
+      | ((state: T, successor1: [T, V], successor2: [T, V]) => number)
+      | null = null,
     alpha: number = Number.NEGATIVE_INFINITY,
-    beta: number = Number.POSITIVE_INFINITY,
-    reorderFn:
-      | ((successor1: [T, V], successor2: [T, V]) => number)
-      | null = null
+    beta: number = Number.POSITIVE_INFINITY
   ) {
     this.state = state;
     this.getStateSuccessors = getStateSuccessors;
     this.type = type;
     this.depth = depth;
     this.move = move;
+    this.reorderCmp = reorderCmp;
     this.alpha = alpha;
     this.beta = beta;
-    this.reorderFn = reorderFn;
   }
 
   getSuccessors() {
@@ -197,10 +200,20 @@ export class MinMaxNode<T, V> {
         this.getStateSuccessors,
         oppositeMinMaxNodeType(this.type),
         this.depth + 1,
-        moveToSuccState
+        moveToSuccState,
+        this.reorderCmp
       );
       successors[idx] = succNode;
     });
+    if (this.reorderCmp !== null) {
+      successors.sort((succ1, succ2) =>
+        this.reorderCmp!(
+          this.state,
+          [succ1.state, succ1.move],
+          [succ2.state, succ2.move]
+        )
+      );
+    }
     return successors;
   }
 }

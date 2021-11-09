@@ -384,7 +384,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
     if (!game) return;
     removeAllCellsSpecialProps();
     if (playerToPlay === human) {
-      console.log(boardValueDiff(game.konane, human!));
+      console.log(boardValueDiff(game.konane, human));
       // human's turn
       const playerLegalActions = game.getLegalHumanActions();
       if (playerLegalActions.size === 0) {

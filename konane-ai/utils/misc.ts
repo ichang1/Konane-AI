@@ -39,3 +39,12 @@ export const oddIndexElements = <T>(arr: T[]) => {
   });
   return elements;
 };
+
+export const pythagoreanDistance = (
+  p1: [number, number],
+  p2: [number, number]
+) => {
+  const [x1, y1] = p1;
+  const [x2, y2] = p2;
+  return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
+};
