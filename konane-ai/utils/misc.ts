@@ -48,3 +48,9 @@ export const pythagoreanDistance = (
   const [x2, y2] = p2;
   return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
 };
+
+export const capitalizeFirstLetter = (string: String) => {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+};
+
+export const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "localhost:3000";

@@ -18,7 +18,7 @@ const sidebarContent = (
         </a>
       </button>
       <button className={styles["sidebar-button"]}>
-        <a href={"/"} className={styles["sidebar-button-about-link"]}>
+        <a href={"/about"} className={styles["sidebar-button-about-link"]}>
           About
         </a>
       </button>
