@@ -14,6 +14,7 @@ import {
   verboseCellPosition,
   RemoveChecker,
   MoveChecker,
+  Cell,
 } from "../konane/KonaneUtils";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Modal from "../components/Modal/Modal";
@@ -22,6 +23,7 @@ import KonaneGame from "../konane/KonaneGame";
 import LoadingIndicator from "../components/LoadingIndicator/LoadingIndicator";
 import { boardValueDiff, konaneDifficulties } from "../konane/KonaneGameUtils";
 import { specialCssClasses } from "../utils/misc";
+import { GameWorkerResponse } from "../workers/gameWorkerUtils";
 
 const n = 8;
 const emptyBoard = [...Array(n)].map((_) => [...Array(n)]);
@@ -39,13 +41,21 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   const [humanWins, setHumanWins] = useState<boolean | null>(null);
   const [computerThinking, setComputerThinking] = useState<boolean>(true);
 
-  const gameRef = useRef<KonaneGame | null>(null);
+  // const gameRef = useRef<KonaneGame | null>(null);
   const boardRef = useRef<(HTMLButtonElement | null)[][]>(emptyBoard);
   const historyRef = useRef<HTMLDivElement | null>(null);
+  const gameWorkerRef = useRef<Worker | null>();
 
-  const [playerToPlay, setPlayerToPlay] = useState<Player | undefined>(
-    gameRef.current?.playerToPlay
-  );
+  const [playerToPlay, setPlayerToPlay] = useState<Player | null>(null);
+  const [legalHumanActionsMap, setLegalHumanActionsMap] = useState<Map<
+    [number, number],
+    Action[]
+  > | null>(null);
+  const [bestComputerAction, setBestComputerAction] = useState<
+    Action | null | undefined
+  >(undefined);
+  const [board, setBoard] = useState<Cell[][] | null>(null);
+  const [turn, setTurn] = useState(0);
 
   const writeToHistory = (line: string) => {
     const history = historyRef.current;
@@ -185,11 +195,11 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
    * @returns null
    */
   const addPlayerCellsSpecialProps = () => {
-    if (playerToPlay !== human) return;
-    if (!gameRef.current) return;
-    const game = gameRef.current;
-    const playerLegalActionsMap = game.getLegalHumanActions();
-    playerLegalActionsMap.forEach((actionsFromCell, cell) => {
+    if (playerToPlay !== human || !legalHumanActionsMap) return;
+    // if (!gameRef.current) return;
+    // const game = gameRef.current;
+    // const playerLegalActionsMap = game.getLegalHumanActions();
+    legalHumanActionsMap.forEach((actionsFromCell, cell) => {
       addCellSpecialProps(cell, actionsFromCell);
     });
   };
@@ -199,9 +209,9 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
    * @returns null
    */
   const removeAllCellsSpecialProps = () => {
-    if (!gameRef.current) return;
-    const internalBoard = gameRef.current.board;
-    internalBoard.forEach((row, rowN) => {
+    // if (!gameRef.current) return;
+    // const internalBoard = gameRef.current.board;
+    emptyBoard.forEach((row, rowN) => {
       row.forEach((_, colN) => {
         const cellElement = boardRef.current[rowN][colN];
         if (!cellElement) return;
@@ -218,8 +228,8 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
    * @returns null
    */
   const animateAndResolveAction = (action: Action) => {
-    const game = gameRef.current;
-    if (!game) return;
+    // const game = gameRef.current;
+    // if (!game) return;
     removeAllCellsSpecialProps();
     if (actionIsMoveChecker(action)) {
       const { from, to } = action;
@@ -240,9 +250,9 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
       const callbacks: [() => void, (idx: number) => number][] = [
         [
           () => {
-            setComputerThinking(false);
+            // setComputerThinking(false);
             // record move in history
-            const description = `${game.turn + 1}. ${
+            const description = `${turn + 1}. ${
               playerToPlay === human ? "Human" : "Computer"
             } (${playerToPlay}) moves (${verboseCellPosition(from).join(
               ", "
@@ -270,16 +280,12 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
           () => {
             // remove border to cell that checker will be moved to
             toCellElement.classList.remove(solidBorderCls);
-            game.applyAction(action);
+            gameWorkerRef.current?.postMessage({
+              type: "APPLY_ACTION",
+              data: { action },
+            });
           },
           (idx: number) => idx * ANIMATION_SPEED,
-        ],
-        [
-          () => {
-            if (playerToPlay === human) setComputerThinking(true);
-            setPlayerToPlay((p) => (p === BLACK ? WHITE : BLACK));
-          },
-          (idx: number) => (idx - 1) * ANIMATION_SPEED + 150,
         ],
       ];
       callbacks.forEach(([cb, delayFn], idx) => {
@@ -298,9 +304,8 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
       const callbacks: [() => void, (idx: number) => number][] = [
         [
           () => {
-            setComputerThinking(false);
             // record remove in history
-            const description = `${game.turn + 1}. ${
+            const description = `${turn + 1}. ${
               playerToPlay === human ? "Human" : "Computer"
             } (${playerToPlay}) removes (${verboseCellPosition(cell).join(
               ", "
@@ -315,15 +320,12 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
           () => {
             // remove border from checker that will be removed
             cellElement.classList.remove(solidBorderCls);
-            game.applyAction(action);
+            gameWorkerRef.current?.postMessage({
+              type: "APPLY_ACTION",
+              data: { action },
+            });
           },
           (idx: number) => idx * ANIMATION_SPEED,
-        ],
-        [
-          () => {
-            setPlayerToPlay((p) => (p === BLACK ? WHITE : BLACK));
-          },
-          (idx: number) => (idx - 1) * ANIMATION_SPEED + 150,
         ],
       ];
       callbacks.forEach(([cb, delayFn], idx) => {
@@ -333,13 +335,9 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   };
 
   const escapeActiveActionHandler = () => {
-    if (!activeAction) return;
+    if (!activeAction || !legalHumanActionsMap) return;
     setActiveAction(null);
-    // setActiveCell(null);
     if (actionIsMoveChecker(activeAction) && activeCell) {
-      const game = gameRef.current;
-      if (!game) return;
-      const legalHumanActionsMap = game.getLegalHumanActions();
       const activeCellKeyValueArr = [...legalHumanActionsMap.entries()].find(
         (k, v) => k.toString() === activeCell.toString()
       );
@@ -366,49 +364,113 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   useEffect(() => {
     const history = historyRef.current;
     if (history) history.innerHTML = "";
+    gameWorkerRef.current = new Worker(
+      new URL("../workers/game.worker.ts", import.meta.url)
+    );
+    gameWorkerRef.current.addEventListener(
+      "message",
+      (e: MessageEvent<GameWorkerResponse>) => {
+        const response = e.data;
+        console.log("Host received:", e);
+        switch (response.type) {
+          case "FETCH_BOARD_RESPONSE":
+            const { board } = response.data;
+            setBoard(board);
+            // console.log(board);
+            return;
+          case "FETCH_PLAYER_TO_PLAY_RESPONSE":
+            const { playerToPlay: p } = response.data;
+            setPlayerToPlay(p);
+            // console.log(p);
+            return;
+          case "FETCH_LEGAL_HUMAN_ACTIONS_RESPONSE":
+            const { legalHumanActions } = response.data;
+            setLegalHumanActionsMap(legalHumanActions);
+            // console.log(legalHumanActions);
+            return;
+          case "FETCH_BEST_COMPUTER_ACTION_RESPONSE":
+            const { bestComputerAction } = response.data;
+            setBestComputerAction(bestComputerAction);
+            // console.log(bestComputerAction);
+            return;
+          case "FETCH_GAME_TURN_RESPONSE":
+            const { turn } = response.data;
+            setTurn(turn);
+            return;
+          default:
+            return;
+        }
+      }
+    );
+    return () => {
+      gameWorkerRef.current?.terminate();
+    };
   }, []);
 
   useEffect(() => {
     if (human) {
       // once user chooses to play as white or black, set up the game
-      gameRef.current = new KonaneGame(
-        human,
-        konaneDifficulties[difficulty] || 0
-      );
-      setPlayerToPlay(BLACK);
+      const diff = konaneDifficulties[difficulty] || 0;
+      gameWorkerRef.current?.postMessage({
+        type: "START",
+        data: { human, difficulty: diff },
+      });
+      gameWorkerRef.current?.postMessage({
+        type: "FETCH_BOARD",
+      });
+      gameWorkerRef.current?.postMessage({
+        type: "FETCH_PLAYER_TO_PLAY",
+      });
     }
   }, [human]);
 
   useEffect(() => {
-    const game = gameRef.current;
-    if (!game) return;
     removeAllCellsSpecialProps();
+    gameWorkerRef.current?.postMessage({
+      type: "FETCH_GAME_TURN",
+    });
+    gameWorkerRef.current?.postMessage({
+      type: "FETCH_BOARD",
+    });
     if (playerToPlay === human) {
-      console.log(boardValueDiff(game.konane, human));
       // human's turn
-      const playerLegalActions = game.getLegalHumanActions();
-      if (playerLegalActions.size === 0) {
-        // human has no moves left, human loses
-        setHumanWins(false);
-      } else {
-        addPlayerCellsSpecialProps();
-      }
+      gameWorkerRef.current?.postMessage({
+        type: "FETCH_LEGAL_HUMAN_ACTIONS",
+      });
     } else {
       // computer's turn
-      const bestAction = game.getBestComputerAction();
-      if (!bestAction) {
-        // computer has no moves left, human wins
-        setHumanWins(true);
-      } else {
-        animateAndResolveAction(bestAction);
-      }
+      setComputerThinking(true);
+      gameWorkerRef.current?.postMessage({
+        type: "FETCH_BEST_COMPUTER_ACTION",
+      });
     }
   }, [playerToPlay]);
+
+  useEffect(() => {
+    if (!legalHumanActionsMap) return;
+    if (legalHumanActionsMap.size === 0) {
+      // human has no moves left, human loses
+      setHumanWins(false);
+    } else {
+      addPlayerCellsSpecialProps();
+    }
+  }, [legalHumanActionsMap]);
+
+  useEffect(() => {
+    if (bestComputerAction === undefined) return;
+    setComputerThinking(false);
+    if (!bestComputerAction) {
+      // computer has no moves left, human wins
+      setHumanWins(true);
+    } else {
+      animateAndResolveAction(bestComputerAction);
+    }
+  }, [bestComputerAction]);
 
   /**
    * Rerender if internal board changes at all
    */
-  useEffect(() => {}, [`${gameRef.current?.board}`]);
+  useEffect(() => {}, [`${board}`]);
 
   return (
     <div
@@ -469,7 +531,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
           <div
             className={styles["active-action-confirmation-modal-content"]}
             style={{
-              background: playerToPlay,
+              background: playerToPlay || "",
               color: playerToPlay === BLACK ? WHITE : BLACK,
               border: `0.5em solid ${
                 actionIsMoveChecker(activeAction)
@@ -617,16 +679,15 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
                 tabIndex={-1}
                 data-col={`${colN + 1}`}
               >
-                {gameRef.current &&
-                  cellIsChecker(gameRef.current.board[rowN][colN]) && (
-                    <div
-                      className={
-                        gameRef.current.board[rowN][colN] === "X"
-                          ? "checker-black"
-                          : "checker-white"
-                      }
-                    ></div>
-                  )}
+                {board && cellIsChecker(board[rowN][colN]) && (
+                  <div
+                    className={
+                      board[rowN][colN] === "X"
+                        ? "checker-black"
+                        : "checker-white"
+                    }
+                  ></div>
+                )}
               </button>
             ))}
           </div>
