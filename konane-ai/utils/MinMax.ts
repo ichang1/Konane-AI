@@ -30,10 +30,12 @@ interface GenericWithToString {
 export class MinMax<T extends GenericWithToString, V> {
   successorCache: Map<String, MinMaxNode<T, V>[]>;
   evalCache: Map<String, number>;
+  evaluations: number;
 
   constructor() {
     this.successorCache = new Map();
     this.evalCache = new Map();
+    this.evaluations = 0;
   }
 
   minMax = (
@@ -55,6 +57,7 @@ export class MinMax<T extends GenericWithToString, V> {
       if (!this.successorCache.has(nodeStateStr))
         this.successorCache.set(nodeStateStr, nodeSuccessors);
       if (depth >= maxDepth || nodeSuccessors.length === 0) {
+        this.evaluations++;
         const stateEval =
           this.evalCache.get(nodeStateStr) || staticEvalFn(node.state);
         if (!this.evalCache.has(nodeStateStr))
@@ -93,7 +96,6 @@ export class MinMax<T extends GenericWithToString, V> {
     maxDepth: number,
     staticEvalFn: (nodeState: T) => number
   ): V => {
-    let staticEvals = 0;
     /**
      *
      * @param node min max node
@@ -109,7 +111,7 @@ export class MinMax<T extends GenericWithToString, V> {
         this.successorCache.set(nodeStateStr, nodeSuccessors);
       }
       if (depth >= maxDepth || nodeSuccessors.length === 0) {
-        // console.log(staticEvals++);
+        this.evaluations++;
         const stateEval =
           this.evalCache.get(nodeStateStr) || staticEvalFn(node.state);
         if (!this.evalCache.has(nodeStateStr))

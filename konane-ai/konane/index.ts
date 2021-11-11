@@ -1,10 +1,4 @@
-import {
-  Action,
-  actionIsMoveChecker,
-  BLACK,
-  Player,
-  WHITE,
-} from "./KonaneUtils";
+import { Action, BLACK, Player, WHITE } from "./KonaneUtils";
 import KonaneGame, { getKonaneStaticEval } from "./KonaneGame";
 import { MinMax, MinMaxNode } from "../utils/MinMax";
 import Konane from "./Konane";
@@ -16,21 +10,27 @@ import {
   konaneDifficulties,
   getKonaneSuccessors,
   Weights,
-  simple2,
   boardValueDiff,
 } from "./KonaneGameUtils";
 
 class KonaneGameTest extends KonaneGame {
-  private minMaxHandlerHuman: MinMax<Konane, Action | null>;
+  minMaxHandlerHuman: MinMax<Konane, Action | null>;
   private weights: Weights | null;
+
+  nodeCount: number;
+  branchCount: number;
+
   constructor(
     human: Player,
-    computerDifficulty: ComputerDifficulty,
+    difficulty: number,
     weights: Weights | null = null
   ) {
-    super(human, computerDifficulty);
+    super(human, difficulty);
     this.minMaxHandlerHuman = new MinMax();
     this.weights = weights;
+
+    this.nodeCount = 0;
+    this.branchCount = 0;
   }
 
   getBestHumanAction() {
@@ -43,7 +43,15 @@ class KonaneGameTest extends KonaneGame {
     );
     return this.minMaxHandlerHuman.minMaxAlphaBeta(
       testNode,
-      computerDifficultyDepths.grandmaster,
+      7,
+      getKonaneStaticEval(this.human, (state: Konane, player: Player) =>
+        // simple2(state, player)
+        boardValueDiff(state, player, this.weights)
+      )
+    );
+    return this.minMaxHandlerHuman.minMax(
+      testNode,
+      0,
       getKonaneStaticEval(this.human, (state: Konane, player: Player) =>
         // simple2(state, player)
         boardValueDiff(state, player, this.weights)
@@ -54,6 +62,9 @@ class KonaneGameTest extends KonaneGame {
   getRandomHumanAction() {
     const legalActionsMap = this.getLegalHumanActions();
     const legalActionsFlat = [...legalActionsMap.values()].flat(1);
+    this.nodeCount++;
+    this.branchCount += legalActionsFlat.length;
+    // console.log("Branch Factor: ", this.branchCount / this.nodeCount);
     if (legalActionsFlat.length === 0) return null;
     const randIdx = randInt(0, legalActionsFlat.length - 1);
     return legalActionsFlat[randIdx];
@@ -73,104 +84,22 @@ const roles = {
 };
 
 const runningTrials = false;
+const branchFactor = false;
+const minmaxBranch = false;
+const minmaxABBranch = true;
 const TRIALS = 100;
 
 if (runningTrials) {
-  const possibleWeights = [-5, -4, -3, -2, -1, 1, 2, 3, 4, 5];
-  const positiveWeights = [1, 2, 3, 4, 5];
-  const negativeWeights = [-5, -4, -3, -2, -1];
-  let bestWeightsRatio = null;
-  let bestWeights = null;
-  for (let eight of possibleWeights) {
-    for (let seven of positiveWeights) {
-      for (let six of possibleWeights) {
-        for (let five of possibleWeights) {
-          for (let four of possibleWeights) {
-            for (let three of possibleWeights) {
-              for (let two of possibleWeights) {
-                for (let one of positiveWeights) {
-                  const weights = {
-                    one,
-                    two,
-                    three,
-                    four,
-                    five,
-                    six,
-                    seven,
-                    eight,
-                  };
-                  // console.log("testing:", weights);
-                  const humanWinsBoth = runBoth(weights);
-                  if (humanWinsBoth) console.log(weights);
-                  // const winRates = runTrials(TRIALS, weights);
-                  // if (!winRates) continue;
-                  // const [humanWins, computerWins] = winRates;
-                  // if (!bestWeightsRatio) {
-                  //   bestWeightsRatio = [humanWins, computerWins];
-                  //   bestWeights = weights;
-                  //   console.log(bestWeightsRatio);
-                  //   console.log(bestWeights);
-                  // } else {
-                  //   const [curBestHumanWins, curBestComputerWins] =
-                  //     bestWeightsRatio;
-                  //   if (curBestHumanWins < humanWins) {
-                  //     bestWeightsRatio = [humanWins, computerWins];
-                  //     bestWeights = weights;
-                  //     console.log(bestWeightsRatio);
-                  //     console.log(bestWeights);
-                  //   }
-                  // }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  console.log(bestWeightsRatio);
-  console.log(bestWeights);
-} else {
-  // runTrials(TRIALS, null, true);
-  const weights = {
-    one: -5,
-    two: -5,
-    three: -5,
-    four: -5,
-    five: -5,
-    six: -5,
-    seven: -5,
-    eight: -5,
-  };
-  runBoth(null, true);
-  // const game = new KonaneGameTest(human, konaneDifficulties.grandmaster);
-  // for (let i = 0; i < 100; i++) {
-  //   const playerToPlay = game.playerToPlay;
-  //   if (playerToPlay === human) {
-  //     const bestHumanAction = game.getBestHumanAction();
-  //     // const bestHumanAction = game.getRandomHumanAction();
-  //     if (bestHumanAction === null) {
-  //       // computer lost, no moves left
-  //       console.log("human LOSES! computer WINS");
-  //       break;
-  //     } else {
-  //       console.log("human plays:", bestHumanAction);
-  //       game.applyAction(bestHumanAction);
-  //       console.table(game.board);
-  //     }
-  //   } else {
-  //     const bestComputerAction = game.getBestComputerAction();
-  //     if (bestComputerAction === null) {
-  //       // computer lost, no moves left
-  //       console.log("human WINS! computer LOSES");
-  //       break;
-  //     } else {
-  //       console.log("computer plays:", bestComputerAction);
-  //       game.applyAction(bestComputerAction);
-  //       console.table(game.board);
-  //     }
-  //   }
-  // }
+  runTrials(TRIALS, null, true);
+  throw "";
+}
+if (branchFactor) {
+  runBoth(null, false, true);
+  throw "";
+}
+
+if (minmaxABBranch) {
+  runBoth(null, false, false);
 }
 
 // ===========================================
@@ -232,37 +161,42 @@ function runTrials(
   return [humanWins, computerWins];
 }
 
-function runWeightTrials() {}
-
 function runBoth(
   weights: Weights | null = null,
-  verbose: boolean | null = null
+  verbose: boolean | null = null,
+  random: boolean | null = null
 ) {
-  const [blackHumanWin, _a] = run(BLACK, weights, verbose);
-  const [whiteHumanWin, _b] = run(WHITE, weights, verbose);
+  const [blackHumanWin, _a] = run(WHITE, weights, verbose, random);
+  const [whiteHumanWin, _b] = run(BLACK, weights, verbose, random);
   return blackHumanWin + whiteHumanWin === 2;
 }
 
 function run(
   player: Player,
   weights: Weights | null = null,
-  verbose: boolean | null = null
+  verbose: boolean | null = null,
+  random: boolean | null = null
 ) {
-  const game = new KonaneGameTest(
-    player,
-    konaneDifficulties.grandmaster,
-    weights
-  );
+  const game = new KonaneGameTest(player, 0, weights);
   for (let i = 0; i < 100; i++) {
     const playerToPlay = game.playerToPlay;
     if (playerToPlay === human) {
-      // const bestHumanAction = game.getRandomHumanAction();
-      const bestHumanAction = game.getBestHumanAction();
+      const bestHumanAction = random
+        ? game.getRandomHumanAction()
+        : game.getBestHumanAction();
       if (bestHumanAction === null) {
         // human lost, no moves left
         if (verbose) console.log("human LOSES! computer WINS", game.turn);
+        console.log(
+          `Evaluations (${player}): `,
+          game.minMaxHandlerHuman.evaluations
+        );
+        if (random)
+          console.log(
+            `Branch Factor (${player}): `,
+            game.branchCount / game.nodeCount
+          );
         return [0, 1];
-        break;
       } else {
         // console.log("human plays:", bestHumanAction);
         game.applyAction(bestHumanAction);
@@ -273,8 +207,16 @@ function run(
       if (bestComputerAction === null) {
         // computer lost, no moves left
         if (verbose) console.log("human WINS! computer LOSES", game.turn);
+        console.log(
+          `Evaluations (${player}): `,
+          game.minMaxHandlerHuman.evaluations
+        );
+        if (random)
+          console.log(
+            `Branch Factor (${player}): `,
+            game.branchCount / game.nodeCount
+          );
         return [1, 0];
-        break;
       } else {
         // console.log("computer plays:", bestComputerAction);
         game.applyAction(bestComputerAction);
