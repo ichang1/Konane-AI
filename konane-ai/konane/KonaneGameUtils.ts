@@ -26,6 +26,7 @@ export const oppositeColor = (p: Player) => {
 };
 
 export const computerDifficultyDepths: { [key: string]: number } = {
+  novice: 0,
   easy: 2,
   medium: 4,
   hard: 6,

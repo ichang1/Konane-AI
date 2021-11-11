@@ -1,15 +1,24 @@
+$--side-padding: 5em;
 .about-container > section > h1 {
   text-align: center;
 }
 
-.paragraph-container {
+.section-container {
   display: flex;
   justify-content: center;
+  align-items: center;
+  flex-direction: column;
   font-size: 1em;
   p {
-    padding: 0 5em 0 5em;
+    padding: 0 $--side-padding 0 $--side-padding;
     max-width: 70em;
     min-width: 10em;
     line-height: 2;
   }
+}
+
+.game-instructions-list {
+  max-width: 50em;
+  padding: 0 calc($--side-padding + 1em) 0 calc($--side-padding + 1em);
+  line-height: 2;
 }

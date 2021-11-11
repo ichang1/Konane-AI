@@ -36,21 +36,43 @@ const About: NextPage = () => {
       </Head>
       <section>
         <h1>Game Play</h1>
-        <div className={styles["paragraph-container"]}>
-          <p>
-            {
-              "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Dolores, enim quas necessitatibus mollitia ex ratione placeat saepe veritatis repellat magni, fugit rem provident quod quidem omnis repudiandae sint cupiditate pariatur sapiente. Nulla assumenda similique, dolores veritatis quam eos consectetur tempore culpa aliquam nam iusto tempora voluptatum sit modi repellat fuga quae! Eligendi, provident. Impedit nam perspiciatis fuga id aspernatur laborum, dolorem facilis sapiente, totam, voluptatum maxime autem corporis eaque! Eligendi, dolorum consequuntur cum recusandae unde soluta, iure voluptate ratione, omnis tempore vel suscipit possimus est corrupti vitae veniam nemo corporis. Nulla accusantium quas dicta, eveniet dolores dolorum similique? Iure, debitis!"
-            }
-          </p>
+        <div className={styles["section-container"]}>
+          <ol className={styles["game-instructions-list"]}>
+            <li>
+              Cells that have a rotating dashed border have checkers that are
+              playable.
+            </li>
+            <li>Cells that are playable can be clicked on.</li>
+            <li>
+              When removable checkers are clicked on, a confirmation modal pops
+              up confirming the move.
+            </li>
+            <li>
+              When movable checkers are clicked on, its cell with be focused
+              with a solid border and rotating dashed borders will appear on the
+              cells that the checker can move to. When the destination cells are
+              clicked on, a confirmation modal pops up confirming the move.
+            </li>
+            <li>
+              Confirmation modals can be closed via <kbd>Esc</kbd> and focused
+              cells for movable checkers can also be escaped via <kbd>Esc</kbd>
+            </li>
+          </ol>
         </div>
       </section>
       <section>
         <h1>AI</h1>
-        <div className={styles["paragraph-container"]}>
+        <div className={styles["section-container"]}>
           <p>
-            {
-              "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Dolores, enim quas necessitatibus mollitia ex ratione placeat saepe veritatis repellat magni, fugit rem provident quod quidem omnis repudiandae sint cupiditate pariatur sapiente. Nulla assumenda similique, dolores veritatis quam eos consectetur tempore culpa aliquam nam iusto tempora voluptatum sit modi repellat fuga quae! Eligendi, provident. Impedit nam perspiciatis fuga id aspernatur laborum, dolorem facilis sapiente, totam, voluptatum maxime autem corporis eaque! Eligendi, dolorum consequuntur cum recusandae unde soluta, iure voluptate ratione, omnis tempore vel suscipit possimus est corrupti vitae veniam nemo corporis. Nulla accusantium quas dicta, eveniet dolores dolorum similique? Iure, debitis!"
-            }
+            The AI is powered by the min-max algorithm with alpha beta pruning.
+            The min-max algorithm uses caching to memoize successors generation
+            and static evaluations for extra performance. The static evaluation
+            function takes in a konane board and quantifies the board by
+            weighing how good each checker is to a player and summing those
+            values. If a checker has multiple moves associated with it, then it
+            is weighted by the best possible move that it can partake. The
+            evaluation is then the difference between these two sums for the
+            players.
           </p>
         </div>
       </section>

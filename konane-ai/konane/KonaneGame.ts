@@ -2,37 +2,24 @@ import { MinMax, MinMaxNode } from "../utils/MinMax";
 import { randInt } from "../utils/misc";
 import Konane from "./Konane";
 import {
-  ComputerDifficulty,
   oppositeColor,
   konaneDifficulties,
-  computerDifficultyDepths,
   getKonaneSuccessors,
-  actionToString,
-  boardValue,
   boardValueDiff,
-  simple2,
-  simple,
-  konaneSuccessorsCmp,
 } from "./KonaneGameUtils";
-import {
-  Player,
-  Action,
-  BLACK,
-  WHITE,
-  actionIsMoveChecker,
-} from "./KonaneUtils";
+import { Player, Action, BLACK, WHITE } from "./KonaneUtils";
 
 export default class KonaneGame {
   human: Player = WHITE;
   computer: Player = BLACK;
-  difficulty: ComputerDifficulty;
+  difficulty: number;
   konane: Konane;
   private minMaxHandler: MinMax<Konane, Action | null>;
 
-  constructor(human: Player, difficulty: ComputerDifficulty) {
+  constructor(human: Player, difficulty: number) {
     this.human = human;
     this.computer = oppositeColor(human);
-    this.difficulty = difficulty;
+    this.difficulty = Math.floor(difficulty);
     this.konane = new Konane();
     this.minMaxHandler = new MinMax();
   }
@@ -68,33 +55,18 @@ export default class KonaneGame {
       null
       // konaneSuccessorsCmp
     );
-    switch (this.difficulty) {
-      case konaneDifficulties.novice:
-        const legalActions = this.getLegalComputerActions();
-        const legalActionsFlat = [...legalActions.values()].flat(1);
-        if (legalActionsFlat.length === 0) return null;
-        const randIdx = randInt(0, legalActionsFlat.length - 1);
-        return legalActionsFlat[randIdx];
-      case konaneDifficulties.easy:
-        return this.minMaxHandler.minMaxAlphaBeta(
-          minMaxNode,
-          computerDifficultyDepths.easy,
-          getKonaneStaticEval(this.computer, boardValueDiff)
-        );
-      case konaneDifficulties.medium:
-        return this.minMaxHandler.minMaxAlphaBeta(
-          minMaxNode,
-          computerDifficultyDepths.medium,
-          getKonaneStaticEval(this.computer, boardValueDiff)
-        );
-      case konaneDifficulties.hard:
-        return this.minMaxHandler.minMaxAlphaBeta(
-          minMaxNode,
-          computerDifficultyDepths.hard,
-          getKonaneStaticEval(this.computer, boardValueDiff)
-        );
-      default:
-        return null;
+    if (this.difficulty < 2) {
+      const legalActions = this.getLegalComputerActions();
+      const legalActionsFlat = [...legalActions.values()].flat(1);
+      if (legalActionsFlat.length === 0) return null;
+      const randIdx = randInt(0, legalActionsFlat.length - 1);
+      return legalActionsFlat[randIdx];
+    } else {
+      return this.minMaxHandler.minMaxAlphaBeta(
+        minMaxNode,
+        this.difficulty,
+        getKonaneStaticEval(this.computer, boardValueDiff)
+      );
     }
   }
 

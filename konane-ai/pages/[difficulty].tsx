@@ -19,9 +19,8 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import Modal from "../components/Modal/Modal";
 import SideBar from "../components/SideBar/SideBar";
-import KonaneGame from "../konane/KonaneGame";
 import LoadingIndicator from "../components/LoadingIndicator/LoadingIndicator";
-import { boardValueDiff, konaneDifficulties } from "../konane/KonaneGameUtils";
+import { computerDifficultyDepths } from "../konane/KonaneGameUtils";
 import {
   baseUrl,
   capitalizeFirstLetter,
@@ -414,7 +413,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   useEffect(() => {
     if (human) {
       // once user chooses to play as white or black, set up the game
-      const diff = konaneDifficulties[difficulty] || 0;
+      const diff = computerDifficultyDepths[difficulty] || 0;
       gameWorkerRef.current?.postMessage({
         type: "START",
         data: { human, difficulty: diff },
@@ -758,7 +757,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 };
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const paths = Object.keys(konaneDifficulties).map((difficulty) => ({
+  const paths = Object.keys(computerDifficultyDepths).map((difficulty) => ({
     params: { difficulty },
   }));
   return { paths, fallback: "blocking" };
