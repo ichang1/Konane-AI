@@ -1,6 +1,6 @@
 # Konane-AI
 
-The site is live at [a](a)
+The site is live at [https://play-konane.vercel.app/](https://play-konane.vercel.app/)
 
 The site's home page lays out the rules and goal of Konanae and has a few visual demonstrations for the types of moves that a player may see and make.
 
