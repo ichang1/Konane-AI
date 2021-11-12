@@ -1,6 +1,10 @@
 {
-  "extends": "./tsconfig.json",
+  // "extends": "./tsconfig.json",
+  "extends": "ts-node/node12/tsconfig.json",
   "compilerOptions": {
     "module": "commonjs"
+  },
+  "ts-node": {
+    "maxOldSpaceSize": 19000
   }
 }

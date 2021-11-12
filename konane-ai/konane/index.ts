@@ -177,7 +177,7 @@ function run(
   verbose: boolean | null = null,
   random: boolean | null = null
 ) {
-  const game = new KonaneGameTest(player, 0, weights);
+  const game = new KonaneGameTest(player, 2, weights);
   for (let i = 0; i < 100; i++) {
     const playerToPlay = game.playerToPlay;
     if (playerToPlay === human) {
