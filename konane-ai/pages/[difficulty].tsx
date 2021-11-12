@@ -402,7 +402,6 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
       "message",
       (e: MessageEvent<GameWorkerResponse>) => {
         const response = e.data;
-        console.log("Host received:", e);
         switch (response.type) {
           case "FETCH_BOARD_RESPONSE":
             const { board } = response.data;
