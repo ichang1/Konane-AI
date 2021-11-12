@@ -1,6 +1,5 @@
 import type { GetStaticPaths, GetStaticProps, NextPage } from "next";
 import Head from "next/head";
-import Image from "next/image";
 import styles from "../styles/pages/[difficulty].module.scss";
 import {
   Player,
@@ -16,7 +15,7 @@ import {
   MoveChecker,
   Cell,
 } from "../konane/KonaneUtils";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Modal from "../components/Modal/Modal";
 import SideBar from "../components/SideBar/SideBar";
 import LoadingIndicator from "../components/LoadingIndicator/LoadingIndicator";
@@ -44,22 +43,30 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   const [humanWins, setHumanWins] = useState<boolean | null>(null);
   const [computerThinking, setComputerThinking] = useState<boolean>(true);
 
-  // const gameRef = useRef<KonaneGame | null>(null);
+  // reference to the board cells
   const boardRef = useRef<(HTMLButtonElement | null)[][]>(emptyBoard);
+  // reference to the div that contains the game history
   const historyRef = useRef<HTMLDivElement | null>(null);
+  //reference to the web worker that handles the game
   const gameWorkerRef = useRef<Worker | null>();
 
+  // current play to play (from webworker)
   const [playerToPlay, setPlayerToPlay] = useState<Player | null>(null);
+  // current legal actions for human (from webworker)
   const [legalHumanActionsMap, setLegalHumanActionsMap] = useState<Map<
     [number, number],
     Action[]
   > | null>(null);
+  // current best action for computer (from webworker)
   const [bestComputerAction, setBestComputerAction] = useState<
     Action | null | undefined
   >(undefined);
+  // the internal konane board (from webworker)
   const [board, setBoard] = useState<Cell[][] | null>(null);
+  // current turn number (from webworker)
   const [turn, setTurn] = useState(0);
 
+  // function that appends text to the history element
   const writeToHistory = (line: string) => {
     const history = historyRef.current;
     if (!history) return;
@@ -88,13 +95,17 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
     const cellElement = boardRef.current[row][col];
     if (!cellElement) return null;
     const handler = () => {
+      // make this cell active
       setActiveCell(cell);
+      // clear all current cells props
       removeAllCellsSpecialProps();
       const solidBorderCls =
         playerToPlay === BLACK
           ? "cell-border-black-secondary"
           : "cell-border-white-secondary";
+      // add appropriate active border border
       cellElement.classList.add(solidBorderCls);
+      // add onclick and board props for destination cells
       playerLegalMoves.forEach((checkerMove) => {
         const {
           to: [toRow, toCol],
@@ -105,9 +116,10 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
           playerToPlay === BLACK
             ? "rotating-cell-border-black-secondary"
             : "rotating-cell-border-white-secondary";
-        `  `;
+        // add appropriate dashed border to destination cells
         moveToCellElement.classList.add(dashedBorderCls);
         moveToCellElement.style.cursor = "pointer";
+        // when destination cell is clicked, prompt aciton confirmation
         moveToCellElement.onclick = () => {
           setActiveAction(checkerMove);
         };
@@ -144,6 +156,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
     escapeActiveCellHandler();
   };
 
+  // function to check if cell has special board props
   const elementHasSpecialCssClass = (el: HTMLElement) => {
     const { classList } = el;
     for (let cssCls of specialCssClasses) {
@@ -153,7 +166,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   };
 
   /**
-   *
+   * Add onclick and stlying for cell based on actions for said cell
    * @param cell coordinates of the cell in boardRef
    * @param legalActions list of valid actions from that cell
    * @returns
@@ -231,8 +244,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
    * @returns null
    */
   const animateAndResolveAction = (action: Action) => {
-    // const game = gameRef.current;
-    // if (!game) return;
+    // clear all current board props
     removeAllCellsSpecialProps();
     if (actionIsMoveChecker(action)) {
       const { from, to } = action;
@@ -249,11 +261,10 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
         playerToPlay === BLACK
           ? "rotating-cell-border-black-secondary"
           : "rotating-cell-border-white-secondary";
-      // sequence of animations/resolvers
+      // sequence of animations/resolvers for sequential animation
       const callbacks: [() => void, (idx: number) => number][] = [
         [
           () => {
-            // setComputerThinking(false);
             // record move in history
             const description = `${turn + 1}. ${
               playerToPlay === human ? "Human" : "Computer"
@@ -303,7 +314,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
         playerToPlay === BLACK
           ? "cell-border-black-primary"
           : "cell-border-white-primary";
-      // sequence of animations/resolvers
+      // sequence of animations/resolvers for sequential animation
       const callbacks: [() => void, (idx: number) => number][] = [
         [
           () => {
@@ -337,15 +348,22 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
     }
   };
 
+  /**
+   * Escapes the current action that the user is focused on
+   * Useful for going back when focused on a single checker action
+   * @returns null
+   */
   const escapeActiveActionHandler = () => {
     if (!activeAction || !legalHumanActionsMap) return;
     setActiveAction(null);
     if (actionIsMoveChecker(activeAction) && activeCell) {
+      // find the cell that corresponds to the active action
       const activeCellKeyValueArr = [...legalHumanActionsMap.entries()].find(
         (k, v) => k.toString() === activeCell.toString()
       );
       if (!activeCellKeyValueArr) return;
       const [_, activeCellLegalActions] = activeCellKeyValueArr;
+      // reactivate the click handler for the cell to keep the active cell in focus
       const thisCellClickHandler = getMoveCheckerClickHandler(
         activeCell,
         activeCellLegalActions as MoveChecker[]
@@ -357,6 +375,9 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
     }
   };
 
+  /**
+   * Escapes the active cell for a move checker to go back to all possible move checkers
+   */
   const escapeActiveCellHandler = () => {
     if (!activeCell) return;
     setActiveCell(null);
@@ -364,12 +385,19 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
     addPlayerCellsSpecialProps();
   };
 
+  /**
+   * compinent on mount
+   */
   useEffect(() => {
+    // set up history ref
     const history = historyRef.current;
     if (history) history.innerHTML = "";
+
+    // set up game worker ref
     gameWorkerRef.current = new Worker(
       new URL("../workers/game.worker.ts", import.meta.url)
     );
+    // listener to handle and record responses from webworker
     gameWorkerRef.current.addEventListener(
       "message",
       (e: MessageEvent<GameWorkerResponse>) => {
@@ -379,22 +407,18 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
           case "FETCH_BOARD_RESPONSE":
             const { board } = response.data;
             setBoard(board);
-            // console.log(board);
             return;
           case "FETCH_PLAYER_TO_PLAY_RESPONSE":
             const { playerToPlay: p } = response.data;
             setPlayerToPlay(p);
-            // console.log(p);
             return;
           case "FETCH_LEGAL_HUMAN_ACTIONS_RESPONSE":
             const { legalHumanActions } = response.data;
             setLegalHumanActionsMap(legalHumanActions);
-            // console.log(legalHumanActions);
             return;
           case "FETCH_BEST_COMPUTER_ACTION_RESPONSE":
             const { bestComputerAction } = response.data;
             setBestComputerAction(bestComputerAction);
-            // console.log(bestComputerAction);
             return;
           case "FETCH_GAME_TURN_RESPONSE":
             const { turn } = response.data;
@@ -405,6 +429,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
         }
       }
     );
+    // kill webworker on unmount
     return () => {
       gameWorkerRef.current?.terminate();
     };
@@ -414,6 +439,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
     if (human) {
       // once user chooses to play as white or black, set up the game
       const diff = computerDifficultyDepths[difficulty] || 0;
+      // signal webworker to start game and get the internal board and player to play
       gameWorkerRef.current?.postMessage({
         type: "START",
         data: { human, difficulty: diff },
@@ -428,10 +454,15 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   }, [human]);
 
   useEffect(() => {
+    // whenever the play to play changes
+
+    // clear current board props
     removeAllCellsSpecialProps();
+    // get the current turn number
     gameWorkerRef.current?.postMessage({
       type: "FETCH_GAME_TURN",
     });
+    // get the current internal board
     gameWorkerRef.current?.postMessage({
       type: "FETCH_BOARD",
     });
@@ -450,6 +481,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   }, [playerToPlay]);
 
   useEffect(() => {
+    // when the legal moves for the human is received, check for terminal game state
     if (!legalHumanActionsMap) return;
     if (legalHumanActionsMap.size === 0) {
       // human has no moves left, human loses
@@ -460,6 +492,7 @@ const PlayKonane: NextPage<PlayKonaneProps> = ({ difficulty }) => {
   }, [legalHumanActionsMap]);
 
   useEffect(() => {
+    // when best action for human is received, check for terminal game state
     if (bestComputerAction === undefined) return;
     setComputerThinking(false);
     if (!bestComputerAction) {

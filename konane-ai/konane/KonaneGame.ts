@@ -3,7 +3,6 @@ import { randInt } from "../utils/misc";
 import Konane from "./Konane";
 import {
   oppositeColor,
-  konaneDifficulties,
   getKonaneSuccessors,
   boardValueDiff,
 } from "./KonaneGameUtils";

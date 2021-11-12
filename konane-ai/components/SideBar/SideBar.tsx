@@ -9,7 +9,9 @@ interface SideBarProps {
   right?: boolean;
 }
 
-const sidebarContent = (
+// some defualt jsx for navigation sidebar
+// incldues links to other pages and other difficulties
+const navigationContent = (
   <>
     <div>
       <button className={styles["sidebar-button"]}>
@@ -51,24 +53,26 @@ const SideBar: React.FC<SideBarProps> = ({
   navigation,
 }) => {
   if (left || (!left && !right)) {
+    // left side bar
     return (
       <div
         className={`${styles["left-sidebar"]} ${
           className ? className : ""
         }`.trim()}
       >
-        {navigation && sidebarContent}
+        {navigation && navigationContent}
         {children}
       </div>
     );
   } else {
+    // right sidebar
     return (
       <div
         className={`${styles["right-sidebar"]} ${
           className ? className : ""
         }`.trim()}
       >
-        {navigation && sidebarContent}
+        {navigation && navigationContent}
         {children}
       </div>
     );

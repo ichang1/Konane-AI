@@ -46,6 +46,7 @@ const PageModal: React.FC<ModalProps> = ({
 
   if (!open) return null;
   if (full) {
+    // should take up full viewport
     return (
       <div
         className={`${styles["modal-full-page"]}${

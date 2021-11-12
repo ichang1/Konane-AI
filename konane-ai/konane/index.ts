@@ -4,30 +4,22 @@ import { MinMax, MinMaxNode } from "../utils/MinMax";
 import Konane from "./Konane";
 import { randInt } from "../utils/misc";
 import {
-  ComputerDifficulty,
   computerDifficultyDepths,
   oppositeColor,
   konaneDifficulties,
   getKonaneSuccessors,
-  Weights,
   boardValueDiff,
 } from "./KonaneGameUtils";
 
 class KonaneGameTest extends KonaneGame {
   minMaxHandlerHuman: MinMax<Konane, Action | null>;
-  private weights: Weights | null;
 
   nodeCount: number;
   branchCount: number;
 
-  constructor(
-    human: Player,
-    difficulty: number,
-    weights: Weights | null = null
-  ) {
+  constructor(human: Player, difficulty: number) {
     super(human, difficulty);
     this.minMaxHandlerHuman = new MinMax();
-    this.weights = weights;
 
     this.nodeCount = 0;
     this.branchCount = 0;
@@ -46,7 +38,7 @@ class KonaneGameTest extends KonaneGame {
       7,
       getKonaneStaticEval(this.human, (state: Konane, player: Player) =>
         // simple2(state, player)
-        boardValueDiff(state, player, this.weights)
+        boardValueDiff(state, player)
       )
     );
     return this.minMaxHandlerHuman.minMax(
@@ -54,7 +46,7 @@ class KonaneGameTest extends KonaneGame {
       0,
       getKonaneStaticEval(this.human, (state: Konane, player: Player) =>
         // simple2(state, player)
-        boardValueDiff(state, player, this.weights)
+        boardValueDiff(state, player)
       )
     );
   }
@@ -90,16 +82,16 @@ const minmaxABBranch = true;
 const TRIALS = 100;
 
 if (runningTrials) {
-  runTrials(TRIALS, null, true);
+  runTrials(TRIALS, false);
   throw "";
 }
 if (branchFactor) {
-  runBoth(null, false, true);
+  runBoth(false, true);
   throw "";
 }
 
 if (minmaxABBranch) {
-  runBoth(null, false, false);
+  runBoth(false, false);
 }
 
 // ===========================================
@@ -110,11 +102,7 @@ if (minmaxABBranch) {
 // weighted ratio > movable checker ratio
 // wighted ratio ? weight diff
 
-function runTrials(
-  trials: number,
-  weights: Weights | null = null,
-  verbose: boolean | null = null
-) {
+function runTrials(trials: number, verbose: boolean | null = null) {
   let humanWins = 0;
   let computerWins = 0;
   for (let trial = 0; trial < trials; trial++) {
@@ -124,7 +112,10 @@ function runTrials(
       humanWins / computerWins < 2
     )
       return null;
-    const game = new KonaneGameTest(human, konaneDifficulties.hard, weights);
+    const game = new KonaneGameTest(
+      human,
+      computerDifficultyDepths[konaneDifficulties.hard]
+    );
     for (let i = 0; i < 100; i++) {
       const playerToPlay = game.playerToPlay;
       if (playerToPlay === human) {
@@ -162,22 +153,20 @@ function runTrials(
 }
 
 function runBoth(
-  weights: Weights | null = null,
   verbose: boolean | null = null,
   random: boolean | null = null
 ) {
-  const [blackHumanWin, _a] = run(WHITE, weights, verbose, random);
-  const [whiteHumanWin, _b] = run(BLACK, weights, verbose, random);
+  const [blackHumanWin, _a] = run(WHITE, verbose, random);
+  const [whiteHumanWin, _b] = run(BLACK, verbose, random);
   return blackHumanWin + whiteHumanWin === 2;
 }
 
 function run(
   player: Player,
-  weights: Weights | null = null,
   verbose: boolean | null = null,
   random: boolean | null = null
 ) {
-  const game = new KonaneGameTest(player, 2, weights);
+  const game = new KonaneGameTest(player, 2);
   for (let i = 0; i < 100; i++) {
     const playerToPlay = game.playerToPlay;
     if (playerToPlay === human) {
@@ -187,10 +176,10 @@ function run(
       if (bestHumanAction === null) {
         // human lost, no moves left
         if (verbose) console.log("human LOSES! computer WINS", game.turn);
-        console.log(
-          `Evaluations (${player}): `,
-          game.minMaxHandlerHuman.evaluations
-        );
+        // console.log(
+        //   `Evaluations (${player}): `,
+        //   game.minMaxHandlerHuman.evaluations
+        // );
         if (random)
           console.log(
             `Branch Factor (${player}): `,
@@ -207,10 +196,10 @@ function run(
       if (bestComputerAction === null) {
         // computer lost, no moves left
         if (verbose) console.log("human WINS! computer LOSES", game.turn);
-        console.log(
-          `Evaluations (${player}): `,
-          game.minMaxHandlerHuman.evaluations
-        );
+        // console.log(
+        //   `Evaluations (${player}): `,
+        //   game.minMaxHandlerHuman.evaluations
+        // );
         if (random)
           console.log(
             `Branch Factor (${player}): `,

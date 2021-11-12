@@ -11,13 +11,11 @@ import {
   RemoveChecker,
 } from "./KonaneUtils";
 
-export type ComputerDifficulty = 0 | 1 | 2 | 3 | 4 | 5;
-
-export const konaneDifficulties: { [key: string]: ComputerDifficulty } = {
-  novice: 0,
-  easy: 1,
-  medium: 2,
-  hard: 3,
+export const konaneDifficulties: { [key: string]: string } = {
+  novice: "novice",
+  easy: "easy",
+  medium: "medium",
+  hard: "hard",
 };
 
 export const oppositeColor = (p: Player) => {
@@ -37,58 +35,7 @@ export const actionToString = (action: Action) => {
   return entries.toString();
 };
 
-export const simple = (state: Konane, player: Player) => {
-  const blackLegalActionsMap = state.getBlackLegalActions();
-  const whiteLegalActionsMap = state.getWhiteLegalActions();
-  const playerActionsMap =
-    player === BLACK ? blackLegalActionsMap : whiteLegalActionsMap;
-  const opposingActionsMap =
-    player === BLACK ? whiteLegalActionsMap : blackLegalActionsMap;
-
-  const playerActionsFlat = [...playerActionsMap.values()].flat(1);
-  const opposingActionsFlat = [...opposingActionsMap.values()].flat(1);
-
-  // terminal game state
-  if (playerActionsFlat.length === 0) return Number.NEGATIVE_INFINITY;
-  if (opposingActionsFlat.length === 0) return Number.POSITIVE_INFINITY;
-
-  return playerActionsFlat.length - opposingActionsFlat.length;
-};
-
-export const simple2 = (state: Konane, player: Player) => {
-  const blackLegalActionsMap = state.getBlackLegalActions();
-  const whiteLegalActionsMap = state.getWhiteLegalActions();
-  const playerActionsMap =
-    player === BLACK ? blackLegalActionsMap : whiteLegalActionsMap;
-  const opposingActionsMap =
-    player === BLACK ? whiteLegalActionsMap : blackLegalActionsMap;
-
-  const playerActionsCheckers = [...playerActionsMap.keys()].flat(1);
-  const opposingActionsCheckers = [...opposingActionsMap.keys()].flat(1);
-
-  // terminal game state
-  if (playerActionsCheckers.length === 0) return Number.NEGATIVE_INFINITY;
-  if (opposingActionsCheckers.length === 0) return Number.POSITIVE_INFINITY;
-
-  return playerActionsCheckers.length - opposingActionsCheckers.length;
-};
-
-export interface Weights {
-  one: number;
-  two: number;
-  three: number;
-  four: number;
-  five: number;
-  six: number;
-  seven: number;
-  eight: number;
-}
-
-export const boardValue = (
-  state: Konane,
-  player: Player,
-  weights: Weights | null = null
-) => {
+export const boardValue = (state: Konane, player: Player) => {
   const opposingPlayer = oppositeColor(player);
   const blackLegalActionsMap = state.getBlackLegalActions();
   const whiteLegalActionsMap = state.getWhiteLegalActions();
@@ -128,28 +75,6 @@ export const boardValue = (
       const actionSuccessor = successorsMap.get(actionToString(action));
       if (!actionSuccessor) return;
       const actionValue = moveCheckerValue(state, actionSuccessor, action);
-      // let actionValue = 0;
-      // const { to, from } = action;
-
-      // const threatened = checkerIsThreatened(state, from, player);
-      // const threateningInSucc = checkerIsThreatening(
-      //   actionSuccessor,
-      //   to,
-      //   player
-      // );
-      // const threatenedInSucc = checkerIsThreatened(actionSuccessor, to, player);
-
-      // if (isCorner(cellPos)) {
-      //   actionValue += 1.45;
-      // } else if (!threatened && threateningInSucc && !threatenedInSucc) {
-      //   // move that gets a move by choice
-      //   actionValue += 1.3;
-      // } else if (!threatened && !threateningInSucc && !threatenedInSucc) {
-      //   // move to get stranded by choice
-      //   actionValue += 1.15;
-      // } else {
-      //   actionValue += 1;
-      // }
       cellBestActionValue.set(
         cellPos,
         Math.max(actionValue, cellBestActionValue.get(cellPos)!)
@@ -164,30 +89,9 @@ export const boardValue = (
   return value;
 };
 
-export const boardValueDiff = (
-  state: Konane,
-  player: Player,
-  weights: Weights | null = null
-) => {
+export const boardValueDiff = (state: Konane, player: Player) => {
   const opposingPlayer = oppositeColor(player);
   return boardValue(state, player) - boardValue(state, opposingPlayer) || 0;
-};
-
-export const movableRatio = (state: Konane, player: Player) => {
-  const opposingPlayer = oppositeColor(player);
-  const blackLegalActionsMap = state.getBlackLegalActions();
-  const whiteLegalActionsMap = state.getWhiteLegalActions();
-
-  const playerActionsMap =
-    player === BLACK ? blackLegalActionsMap : whiteLegalActionsMap;
-  const opposingActionsMap =
-    opposingPlayer === BLACK ? blackLegalActionsMap : whiteLegalActionsMap;
-
-  // terminal game state
-  if (playerActionsMap.size === 0) return Number.NEGATIVE_INFINITY;
-  if (opposingActionsMap.size === 0) return Number.POSITIVE_INFINITY;
-
-  return playerActionsMap.size / opposingActionsMap.size;
 };
 
 const isCorner = (cellPos: [number, number]) => {
