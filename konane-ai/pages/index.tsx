@@ -155,15 +155,15 @@ const Home: NextPage = () => {
             spaces on the board.
           </li>
           <li>
-            From here on, players take turns capturing each other's pieces. All
-            moves must be capturing moves. A player captures an enemy piece by
-            hopping over it. Captures can be done only horizontally and
-            vertically, <strong>not</strong> diagonally. The player's piece hops
-            over the adjacent enemy piece, and lands on a vacant space
-            immediately past. The player's piece can continue to hop over enemy
-            pieces but only in the same orthogonal direction. The player can
-            stop hopping enemy pieces at any time, choosing whether to perform a
-            single, double or triple jump.
+            From here on, players take turns capturing each other&apos;s pieces.
+            All moves must be capturing moves. A player captures an enemy piece
+            by hopping over it. Captures can be done only horizontally and
+            vertically, <strong>not</strong> diagonally. The player&apos;s piece
+            hops over the adjacent enemy piece, and lands on a vacant space
+            immediately past. The player&apos;s piece can continue to hop over
+            enemy pieces but only in the same orthogonal direction. The player
+            can stop hopping enemy pieces at any time, choosing whether to
+            perform a single, double or triple jump.
           </li>
         </ol>
         <div>Examples of valid capturing moves are below</div>
