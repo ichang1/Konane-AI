@@ -1,11 +1,10 @@
-import { ComputerDifficulty } from "../konane/KonaneGameUtils";
 import { Action, Cell, Player } from "../konane/KonaneUtils";
 
 type Start = {
   type: "START";
   data: {
     human: Player;
-    difficulty: ComputerDifficulty;
+    difficulty: number;
   };
 };
 

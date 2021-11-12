@@ -1,5 +1,4 @@
 import KonaneGame from "../konane/KonaneGame";
-import { ComputerDifficulty } from "../konane/KonaneGameUtils";
 import { Action, Player } from "../konane/KonaneUtils";
 import { GameWorkerAction } from "./gameWorkerUtils";
 const ctx: Worker = self as unknown as Worker;
@@ -9,7 +8,6 @@ self.addEventListener("message", handleMessage);
 let game: KonaneGame | null = null;
 
 async function handleMessage(e: MessageEvent<GameWorkerAction>) {
-  // console.log(e);
   const gameWorkerAction = e.data;
   switch (gameWorkerAction.type) {
     case "START":
@@ -72,7 +70,7 @@ async function handleMessage(e: MessageEvent<GameWorkerAction>) {
   }
 }
 
-async function start(human: Player, computerDifficulty: ComputerDifficulty) {
+async function start(human: Player, computerDifficulty: number) {
   game = new KonaneGame(human, computerDifficulty);
 }
 
