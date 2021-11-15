@@ -155,10 +155,7 @@ export default class Konane {
    * @returns array of legal moves for this player
    */
   private getLegalMoves(player: Player) {
-    const playerCheckerCells =
-      player === BLACK
-        ? this.getCheckerCells(BLACK)
-        : this.getCheckerCells(WHITE);
+    const playerCheckerCells = this.getCheckerCells(player);
     const legalMoves: Map<[number, number], MoveChecker[]> = new Map();
     playerCheckerCells.forEach(([curRow, curCol]) => {
       // legal jumps from this cell

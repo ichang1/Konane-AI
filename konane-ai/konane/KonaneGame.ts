@@ -46,14 +46,6 @@ export default class KonaneGame {
   }
 
   getBestComputerAction(): Action | null {
-    const minMaxNode = new MinMaxNode<Konane, Action | null>(
-      this.konane,
-      getKonaneSuccessors,
-      "max",
-      0,
-      null
-      // konaneSuccessorsCmp
-    );
     if (this.difficulty < 2) {
       const legalActions = this.getLegalComputerActions();
       const legalActionsFlat = [...legalActions.values()].flat(1);
@@ -61,6 +53,14 @@ export default class KonaneGame {
       const randIdx = randInt(0, legalActionsFlat.length - 1);
       return legalActionsFlat[randIdx];
     } else {
+      const minMaxNode = new MinMaxNode<Konane, Action | null>(
+        this.konane,
+        getKonaneSuccessors,
+        "max",
+        0,
+        null
+        // konaneSuccessorsCmp
+      );
       return this.minMaxHandler.minMaxAlphaBeta(
         minMaxNode,
         this.difficulty,

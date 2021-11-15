@@ -35,7 +35,7 @@ class KonaneGameTest extends KonaneGame {
     );
     return this.minMaxHandlerHuman.minMaxAlphaBeta(
       testNode,
-      7,
+      4,
       getKonaneStaticEval(this.human, (state: Konane, player: Player) =>
         // simple2(state, player)
         boardValueDiff(state, player)
@@ -91,7 +91,7 @@ if (branchFactor) {
 }
 
 if (minmaxABBranch) {
-  runBoth(false, false);
+  runBoth(true, false);
 }
 
 // ===========================================
