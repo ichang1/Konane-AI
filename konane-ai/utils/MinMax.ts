@@ -80,7 +80,12 @@ export class MinMax<T extends GenericWithToString, V> {
             return curBest;
           }
         },
-        [Number.NEGATIVE_INFINITY, nodeSuccessors[0].move]
+        [
+          minMaxNodeIsMax(node)
+            ? Number.NEGATIVE_INFINITY
+            : Number.POSITIVE_INFINITY,
+          nodeSuccessors[0].move,
+        ]
       );
       return bestMoveDetails;
     };

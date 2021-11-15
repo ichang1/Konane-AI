@@ -3,8 +3,6 @@ export const WHITE: Player = "white";
 export const BLACK_CHECKER = "X";
 export const WHITE_CHECKER = "O";
 export const EMPTY = ".";
-const REMOVE = "remove";
-const MOVE = "move";
 
 export type Player = "white" | "black";
 export type Empty = ".";
